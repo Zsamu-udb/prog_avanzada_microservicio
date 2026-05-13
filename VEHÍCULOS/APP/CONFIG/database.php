@@ -8,6 +8,7 @@ use PDOException;
 class Database
 {
     private string $host = 'localhost';
+    private string $port = '3306';
     private string $dbName = 'alquiler_vehiculos_db';
     private string $username = 'root';
     private string $password = '';
@@ -16,16 +17,15 @@ class Database
     public function connect(): PDO
     {
         try {
-            $dsn = "mysql:host={$this->host};dbname={$this->dbName};charset={$this->charset}";
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbName};charset={$this->charset}";
 
-            $pdo = new PDO($dsn, $this->username, $this->password, [
+            return new PDO($dsn, $this->username, $this->password, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false
             ]);
-
-            return $pdo;
         } catch (PDOException $e) {
+            http_response_code(500);
             die('Error de conexión a la base de datos: ' . $e->getMessage());
         }
     }
