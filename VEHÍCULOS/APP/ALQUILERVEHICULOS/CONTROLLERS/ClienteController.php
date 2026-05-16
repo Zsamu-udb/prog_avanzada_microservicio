@@ -47,11 +47,9 @@ class ClienteController extends BaseController
 
             $cliente = Cliente::create(
                 $data['nombre'] ?? '',
-                $data['apellido'] ?? '',
-                $data['documento'] ?? '',
                 $data['telefono'] ?? null,
-                $data['email'] ?? null,
-                $data['licencia_conducir'] ?? ''
+                $data['correo'] ?? null,
+                $data['numero_licencia'] ?? null
             );
 
             $clienteCreado = $this->repository->create($cliente);
@@ -67,27 +65,27 @@ class ClienteController extends BaseController
     public function update(int $id): void
     {
         try {
-            $cliente = $this->repository->findById($id);
+            $clienteActual = $this->repository->findById($id);
 
-            if (!$cliente instanceof Cliente) {
+            if (!$clienteActual instanceof Cliente) {
                 $this->errorResponse('Cliente no encontrado.', 404);
                 return;
             }
 
             $data = $this->getJsonInput();
 
-            $cliente->updateData(
-                $data['nombre'] ?? $cliente->getNombre(),
-                $data['apellido'] ?? $cliente->getApellido(),
-                $data['documento'] ?? $cliente->getDocumento(),
-                $data['telefono'] ?? $cliente->getTelefono(),
-                $data['email'] ?? $cliente->getEmail(),
-                $data['licencia_conducir'] ?? $cliente->getLicenciaConducir()
+            $clienteActual->updateData(
+                $data['nombre'] ?? '',
+                $data['telefono'] ?? null,
+                $data['correo'] ?? null,
+                $data['numero_licencia'] ?? null
             );
 
-            $this->repository->update($cliente);
+            $this->repository->update($id, $clienteActual);
 
-            $this->successResponse($cliente->toArray());
+            $this->successResponse([
+                'message' => 'Cliente actualizado correctamente.'
+            ]);
         } catch (InvalidArgumentException $e) {
             $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {

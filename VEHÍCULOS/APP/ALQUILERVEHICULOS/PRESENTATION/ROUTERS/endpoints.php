@@ -4,7 +4,6 @@ declare(strict_types=1);
 use App\AlquilerVehiculos\Controllers\ClienteController;
 use App\AlquilerVehiculos\Controllers\VehiculoController;
 use App\AlquilerVehiculos\Controllers\ReservaController;
-use App\AlquilerVehiculos\Controllers\DevolucionController;
 use Slim\App;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -13,7 +12,6 @@ return function (App $app): void {
     $clienteController = new ClienteController();
     $vehiculoController = new VehiculoController();
     $reservaController = new ReservaController();
-    $devolucionController = new DevolucionController();
 
     /*
     |--------------------------------------------------------------------------
@@ -105,8 +103,13 @@ return function (App $app): void {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    $app->put('/reservas/{id}/finalizar', function (Request $request, Response $response, array $args) use ($reservaController) {
-        $reservaController->finalizar((int) $args['id']);
+    $app->put('/reservas/{id}', function (Request $request, Response $response, array $args) use ($reservaController) {
+        $reservaController->update((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->put('/reservas/{id}/completar', function (Request $request, Response $response, array $args) use ($reservaController) {
+        $reservaController->completar((int) $args['id']);
         return $response->withHeader('Content-Type', 'application/json');
     });
 
@@ -122,26 +125,22 @@ return function (App $app): void {
 
     /*
     |--------------------------------------------------------------------------
-    | DEVOLUCIONES
+    | RUTAS DE PRUEBA
     |--------------------------------------------------------------------------
     */
-    $app->get('/devoluciones', function (Request $request, Response $response) use ($devolucionController) {
-        $devolucionController->index();
+    $app->get('/', function (Request $request, Response $response) {
+        $response->getBody()->write(json_encode([
+            'message' => 'API de alquiler de vehiculos funcionando correctamente'
+        ], JSON_UNESCAPED_UNICODE));
+
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    $app->post('/devoluciones', function (Request $request, Response $response) use ($devolucionController) {
-        $devolucionController->store();
-        return $response->withHeader('Content-Type', 'application/json');
-    });
+    $app->get('/test', function (Request $request, Response $response) {
+        $response->getBody()->write(json_encode([
+            'message' => 'Ruta de prueba OK'
+        ], JSON_UNESCAPED_UNICODE));
 
-    $app->get('/devoluciones/{id}', function (Request $request, Response $response, array $args) use ($devolucionController) {
-        $devolucionController->show((int) $args['id']);
-        return $response->withHeader('Content-Type', 'application/json');
-    });
-
-    $app->delete('/devoluciones/{id}', function (Request $request, Response $response, array $args) use ($devolucionController) {
-        $devolucionController->destroy((int) $args['id']);
         return $response->withHeader('Content-Type', 'application/json');
     });
 };

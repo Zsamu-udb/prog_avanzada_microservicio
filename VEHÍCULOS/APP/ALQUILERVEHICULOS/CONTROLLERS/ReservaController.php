@@ -63,7 +63,39 @@ class ReservaController extends BaseController
         }
     }
 
-    public function finalizar(int $id): void
+    public function update(int $id): void
+    {
+        try {
+            $reservaActual = $this->repository->findById($id);
+
+            if (!$reservaActual instanceof Reserva) {
+                $this->errorResponse('Reserva no encontrada.', 404);
+                return;
+            }
+
+            $data = $this->getJsonInput();
+
+            $reservaActual->updatePeriodo(
+                (int) ($data['cliente_id'] ?? 0),
+                (int) ($data['vehiculo_id'] ?? 0),
+                $data['fecha_inicio'] ?? '',
+                $data['fecha_fin'] ?? '',
+                $data['estado'] ?? 'activa'
+            );
+
+            $this->repository->update($id, $reservaActual);
+
+            $this->successResponse([
+                'message' => 'Reserva actualizada correctamente.'
+            ]);
+        } catch (InvalidArgumentException $e) {
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (Throwable $e) {
+            $this->errorResponse('Error al actualizar la reserva.', 500);
+        }
+    }
+
+    public function completar(int $id): void
     {
         try {
             $reserva = $this->repository->findById($id);
@@ -73,13 +105,15 @@ class ReservaController extends BaseController
                 return;
             }
 
-            $this->repository->finalizar($id);
+            $this->repository->completar($id);
 
             $this->successResponse([
-                'message' => 'Reserva finalizada correctamente.'
+                'message' => 'Reserva completada correctamente.'
             ]);
+        } catch (RuntimeException $e) {
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->errorResponse('Error al finalizar la reserva.', 500);
+            $this->errorResponse('Error al completar la reserva.', 500);
         }
     }
 

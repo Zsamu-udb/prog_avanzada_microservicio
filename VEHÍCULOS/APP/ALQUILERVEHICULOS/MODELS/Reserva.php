@@ -8,14 +8,13 @@ use InvalidArgumentException;
 
 class Reserva extends AbstractModel
 {
-    private const ESTADOS_VALIDOS = ['activa', 'finalizada', 'cancelada'];
+    private const ESTADOS_VALIDOS = ['activa', 'completada', 'cancelada'];
 
     private int $clienteId;
     private int $vehiculoId;
     private string $fechaInicio;
     private string $fechaFin;
     private string $estado;
-    private float $totalEstimado;
 
     public function __construct(
         ?int $id,
@@ -24,7 +23,6 @@ class Reserva extends AbstractModel
         string $fechaInicio,
         string $fechaFin,
         string $estado = 'activa',
-        float $totalEstimado = 0.0,
         ?string $createdAt = null,
         ?string $updatedAt = null
     ) {
@@ -35,7 +33,6 @@ class Reserva extends AbstractModel
         $this->setFechaInicio($fechaInicio);
         $this->setFechaFin($fechaFin);
         $this->setEstado($estado);
-        $this->setTotalEstimado($totalEstimado);
         $this->validateDateRange();
     }
 
@@ -54,38 +51,29 @@ class Reserva extends AbstractModel
         );
     }
 
-    public function updatePeriodo(string $fechaInicio, string $fechaFin): void
-    {
+    public function updatePeriodo(
+        int $clienteId,
+        int $vehiculoId,
+        string $fechaInicio,
+        string $fechaFin,
+        string $estado
+    ): void {
+        $this->setClienteId($clienteId);
+        $this->setVehiculoId($vehiculoId);
         $this->setFechaInicio($fechaInicio);
         $this->setFechaFin($fechaFin);
+        $this->setEstado($estado);
         $this->validateDateRange();
     }
 
-    public function finalizar(): void
+    public function completar(): void
     {
-        $this->estado = 'finalizada';
+        $this->estado = 'completada';
     }
 
     public function cancelar(): void
     {
         $this->estado = 'cancelada';
-    }
-
-    public function recalcularTotal(float $precioPorDia): void
-    {
-        if ($precioPorDia < 0) {
-            throw new InvalidArgumentException('El precio por día no puede ser negativo.');
-        }
-
-        $inicio = new DateTime($this->fechaInicio);
-        $fin = new DateTime($this->fechaFin);
-        $dias = (int) $inicio->diff($fin)->days;
-
-        if ($dias <= 0) {
-            $dias = 1;
-        }
-
-        $this->totalEstimado = $dias * $precioPorDia;
     }
 
     public function getClienteId(): int
@@ -111,11 +99,6 @@ class Reserva extends AbstractModel
     public function getEstado(): string
     {
         return $this->estado;
-    }
-
-    public function getTotalEstimado(): float
-    {
-        return $this->totalEstimado;
     }
 
     private function setClienteId(int $clienteId): void
@@ -159,15 +142,6 @@ class Reserva extends AbstractModel
         $this->estado = $estado;
     }
 
-    private function setTotalEstimado(float $totalEstimado): void
-    {
-        if ($totalEstimado < 0) {
-            throw new InvalidArgumentException('El total estimado no puede ser negativo.');
-        }
-
-        $this->totalEstimado = $totalEstimado;
-    }
-
     private function validateDateRange(): void
     {
         if ($this->fechaFin < $this->fechaInicio) {
@@ -193,7 +167,6 @@ class Reserva extends AbstractModel
             'fecha_inicio' => $this->fechaInicio,
             'fecha_fin' => $this->fechaFin,
             'estado' => $this->estado,
-            'total_estimado' => $this->totalEstimado,
             'created_at' => $this->getCreatedAt(),
             'updated_at' => $this->getUpdatedAt()
         ];

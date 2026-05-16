@@ -12,20 +12,16 @@ class Vehiculo extends AbstractModel
     private string $marca;
     private string $modelo;
     private int $anio;
-    private string $categoria;
-    private string $placa;
+    private ?string $categoria;
     private string $estado;
-    private float $precioPorDia;
 
     public function __construct(
         ?int $id,
         string $marca,
         string $modelo,
         int $anio,
-        string $categoria,
-        string $placa,
-        string $estado,
-        float $precioPorDia,
+        ?string $categoria = null,
+        string $estado = 'disponible',
         ?string $createdAt = null,
         ?string $updatedAt = null
     ) {
@@ -35,18 +31,14 @@ class Vehiculo extends AbstractModel
         $this->setModelo($modelo);
         $this->setAnio($anio);
         $this->setCategoria($categoria);
-        $this->setPlaca($placa);
         $this->setEstado($estado);
-        $this->setPrecioPorDia($precioPorDia);
     }
 
     public static function create(
         string $marca,
         string $modelo,
         int $anio,
-        string $categoria,
-        string $placa,
-        float $precioPorDia,
+        ?string $categoria = null,
         string $estado = 'disponible'
     ): self {
         return new self(
@@ -55,9 +47,7 @@ class Vehiculo extends AbstractModel
             $modelo,
             $anio,
             $categoria,
-            $placa,
-            $estado,
-            $precioPorDia
+            $estado
         );
     }
 
@@ -65,38 +55,19 @@ class Vehiculo extends AbstractModel
         string $marca,
         string $modelo,
         int $anio,
-        string $categoria,
-        string $placa,
-        float $precioPorDia,
-        string $estado
+        ?string $categoria = null,
+        string $estado = 'disponible'
     ): void {
         $this->setMarca($marca);
         $this->setModelo($modelo);
         $this->setAnio($anio);
         $this->setCategoria($categoria);
-        $this->setPlaca($placa);
-        $this->setPrecioPorDia($precioPorDia);
         $this->setEstado($estado);
     }
 
-    public function marcarDisponible(): void
+    public function cambiarEstado(string $estado): void
     {
-        $this->estado = 'disponible';
-    }
-
-    public function marcarAlquilado(): void
-    {
-        $this->estado = 'alquilado';
-    }
-
-    public function marcarEnMantenimiento(): void
-    {
-        $this->estado = 'mantenimiento';
-    }
-
-    public function estaDisponible(): bool
-    {
-        return $this->estado === 'disponible';
+        $this->setEstado($estado);
     }
 
     public function getMarca(): string
@@ -114,14 +85,9 @@ class Vehiculo extends AbstractModel
         return $this->anio;
     }
 
-    public function getCategoria(): string
+    public function getCategoria(): ?string
     {
         return $this->categoria;
-    }
-
-    public function getPlaca(): string
-    {
-        return $this->placa;
     }
 
     public function getEstado(): string
@@ -129,21 +95,12 @@ class Vehiculo extends AbstractModel
         return $this->estado;
     }
 
-    public function getPrecioPorDia(): float
-    {
-        return $this->precioPorDia;
-    }
-
-    public function getNombreCompleto(): string
-    {
-        return $this->marca . ' ' . $this->modelo;
-    }
-
     private function setMarca(string $marca): void
     {
         $marca = trim($marca);
+
         if ($marca === '') {
-            throw new InvalidArgumentException('La marca no puede estar vacía.');
+            throw new InvalidArgumentException('La marca del vehículo es obligatoria.');
         }
 
         $this->marca = $marca;
@@ -152,8 +109,9 @@ class Vehiculo extends AbstractModel
     private function setModelo(string $modelo): void
     {
         $modelo = trim($modelo);
+
         if ($modelo === '') {
-            throw new InvalidArgumentException('El modelo no puede estar vacío.');
+            throw new InvalidArgumentException('El modelo del vehículo es obligatorio.');
         }
 
         $this->modelo = $modelo;
@@ -161,37 +119,24 @@ class Vehiculo extends AbstractModel
 
     private function setAnio(int $anio): void
     {
-        $anioActual = (int) date('Y');
-        if ($anio < 1900 || $anio > $anioActual + 1) {
+        $currentYear = (int) date('Y') + 1;
+
+        if ($anio < 1900 || $anio > $currentYear) {
             throw new InvalidArgumentException('El año del vehículo no es válido.');
         }
 
         $this->anio = $anio;
     }
 
-    private function setCategoria(string $categoria): void
+    private function setCategoria(?string $categoria): void
     {
-        $categoria = trim($categoria);
-        if ($categoria === '') {
-            throw new InvalidArgumentException('La categoría no puede estar vacía.');
-        }
-
-        $this->categoria = $categoria;
-    }
-
-    private function setPlaca(string $placa): void
-    {
-        $placa = strtoupper(trim($placa));
-        if ($placa === '') {
-            throw new InvalidArgumentException('La placa no puede estar vacía.');
-        }
-
-        $this->placa = $placa;
+        $categoria = $categoria !== null ? trim($categoria) : null;
+        $this->categoria = $categoria !== '' ? $categoria : null;
     }
 
     private function setEstado(string $estado): void
     {
-        $estado = trim(strtolower($estado));
+        $estado = strtolower(trim($estado));
 
         if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
             throw new InvalidArgumentException('El estado del vehículo no es válido.');
@@ -200,27 +145,15 @@ class Vehiculo extends AbstractModel
         $this->estado = $estado;
     }
 
-    private function setPrecioPorDia(float $precioPorDia): void
-    {
-        if ($precioPorDia < 0) {
-            throw new InvalidArgumentException('El precio por día no puede ser negativo.');
-        }
-
-        $this->precioPorDia = $precioPorDia;
-    }
-
     public function toArray(): array
     {
         return [
             'id' => $this->getId(),
             'marca' => $this->marca,
             'modelo' => $this->modelo,
-            'nombre_completo' => $this->getNombreCompleto(),
             'anio' => $this->anio,
             'categoria' => $this->categoria,
-            'placa' => $this->placa,
             'estado' => $this->estado,
-            'precio_por_dia' => $this->precioPorDia,
             'created_at' => $this->getCreatedAt(),
             'updated_at' => $this->getUpdatedAt()
         ];

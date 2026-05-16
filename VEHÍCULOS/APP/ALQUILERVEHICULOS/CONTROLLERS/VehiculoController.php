@@ -30,7 +30,7 @@ class VehiculoController extends BaseController
 
     public function disponibles(): void
     {
-        $vehiculos = $this->repository->findAvailable();
+        $vehiculos = $this->repository->findDisponibles();
         $data = array_map(
             fn(Vehiculo $vehiculo) => $vehiculo->toArray(),
             $vehiculos
@@ -60,9 +60,7 @@ class VehiculoController extends BaseController
                 $data['marca'] ?? '',
                 $data['modelo'] ?? '',
                 (int) ($data['anio'] ?? 0),
-                $data['categoria'] ?? '',
-                $data['placa'] ?? '',
-                (float) ($data['precio_por_dia'] ?? 0),
+                $data['categoria'] ?? null,
                 $data['estado'] ?? 'disponible'
             );
 
@@ -79,28 +77,28 @@ class VehiculoController extends BaseController
     public function update(int $id): void
     {
         try {
-            $vehiculo = $this->repository->findById($id);
+            $vehiculoActual = $this->repository->findById($id);
 
-            if (!$vehiculo instanceof Vehiculo) {
+            if (!$vehiculoActual instanceof Vehiculo) {
                 $this->errorResponse('Vehículo no encontrado.', 404);
                 return;
             }
 
             $data = $this->getJsonInput();
 
-            $vehiculo->updateData(
-                $data['marca'] ?? $vehiculo->getMarca(),
-                $data['modelo'] ?? $vehiculo->getModelo(),
-                (int) ($data['anio'] ?? $vehiculo->getAnio()),
-                $data['categoria'] ?? $vehiculo->getCategoria(),
-                $data['placa'] ?? $vehiculo->getPlaca(),
-                (float) ($data['precio_por_dia'] ?? $vehiculo->getPrecioPorDia()),
-                $data['estado'] ?? $vehiculo->getEstado()
+            $vehiculoActual->updateData(
+                $data['marca'] ?? '',
+                $data['modelo'] ?? '',
+                (int) ($data['anio'] ?? 0),
+                $data['categoria'] ?? null,
+                $data['estado'] ?? 'disponible'
             );
 
-            $this->repository->update($vehiculo);
+            $this->repository->update($id, $vehiculoActual);
 
-            $this->successResponse($vehiculo->toArray());
+            $this->successResponse([
+                'message' => 'Vehículo actualizado correctamente.'
+            ]);
         } catch (InvalidArgumentException $e) {
             $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
@@ -111,33 +109,25 @@ class VehiculoController extends BaseController
     public function updateEstado(int $id): void
     {
         try {
-            $vehiculo = $this->repository->findById($id);
+            $vehiculoActual = $this->repository->findById($id);
 
-            if (!$vehiculo instanceof Vehiculo) {
+            if (!$vehiculoActual instanceof Vehiculo) {
                 $this->errorResponse('Vehículo no encontrado.', 404);
                 return;
             }
 
             $data = $this->getJsonInput();
-            $estado = $data['estado'] ?? '';
+            $vehiculoActual->cambiarEstado($data['estado'] ?? '');
 
-            $vehiculo->updateData(
-                $vehiculo->getMarca(),
-                $vehiculo->getModelo(),
-                $vehiculo->getAnio(),
-                $vehiculo->getCategoria(),
-                $vehiculo->getPlaca(),
-                $vehiculo->getPrecioPorDia(),
-                $estado
-            );
+            $this->repository->updateEstado($id, $vehiculoActual->getEstado());
 
-            $this->repository->updateEstado($id, $vehiculo->getEstado());
-
-            $this->successResponse($vehiculo->toArray());
+            $this->successResponse([
+                'message' => 'Estado del vehículo actualizado correctamente.'
+            ]);
         } catch (InvalidArgumentException $e) {
             $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->errorResponse('Error al cambiar el estado del vehículo.', 500);
+            $this->errorResponse('Error al actualizar el estado del vehículo.', 500);
         }
     }
 

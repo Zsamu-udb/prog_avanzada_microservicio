@@ -63,11 +63,8 @@ class ReservaRepository extends BaseRepository implements RepositoryInterface
                 throw new RuntimeException('Ya existe una reserva activa para ese vehículo en ese rango de fechas.');
             }
 
-            $precioPorDia = (float) $vehiculo['precio_por_dia'];
-            $reserva->recalcularTotal($precioPorDia);
-
-            $sql = "INSERT INTO reservas (cliente_id, vehiculo_id, fecha_inicio, fecha_fin, estado, total_estimado)
-                    VALUES (:cliente_id, :vehiculo_id, :fecha_inicio, :fecha_fin, :estado, :total_estimado)";
+            $sql = "INSERT INTO reservas (cliente_id, vehiculo_id, fecha_inicio, fecha_fin, estado)
+                    VALUES (:cliente_id, :vehiculo_id, :fecha_inicio, :fecha_fin, :estado)";
 
             $stmt = $this->getConnection()->prepare($sql);
             $stmt->bindValue(':cliente_id', $reserva->getClienteId(), PDO::PARAM_INT);
@@ -75,7 +72,6 @@ class ReservaRepository extends BaseRepository implements RepositoryInterface
             $stmt->bindValue(':fecha_inicio', $reserva->getFechaInicio());
             $stmt->bindValue(':fecha_fin', $reserva->getFechaFin());
             $stmt->bindValue(':estado', $reserva->getEstado());
-            $stmt->bindValue(':total_estimado', $reserva->getTotalEstimado());
             $stmt->execute();
 
             $reserva->setId((int) $this->getConnection()->lastInsertId());
@@ -97,13 +93,57 @@ class ReservaRepository extends BaseRepository implements RepositoryInterface
         }
     }
 
-    public function finalizar(int $id): bool
+    public function update(int $id, Reserva $reserva): bool
     {
-        $sql = "UPDATE reservas SET estado = 'finalizada' WHERE id = :id";
+        $sql = "UPDATE reservas
+                SET cliente_id = :cliente_id,
+                    vehiculo_id = :vehiculo_id,
+                    fecha_inicio = :fecha_inicio,
+                    fecha_fin = :fecha_fin,
+                    estado = :estado
+                WHERE id = :id";
+
         $stmt = $this->getConnection()->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->bindValue(':cliente_id', $reserva->getClienteId(), PDO::PARAM_INT);
+        $stmt->bindValue(':vehiculo_id', $reserva->getVehiculoId(), PDO::PARAM_INT);
+        $stmt->bindValue(':fecha_inicio', $reserva->getFechaInicio());
+        $stmt->bindValue(':fecha_fin', $reserva->getFechaFin());
+        $stmt->bindValue(':estado', $reserva->getEstado());
 
         return $stmt->execute();
+    }
+
+    public function completar(int $id): bool
+    {
+        try {
+            $this->getConnection()->beginTransaction();
+
+            $reserva = $this->findById($id);
+            if (!$reserva instanceof Reserva) {
+                throw new RuntimeException('La reserva no existe.');
+            }
+
+            $sqlReserva = "UPDATE reservas SET estado = 'completada' WHERE id = :id";
+            $stmtReserva = $this->getConnection()->prepare($sqlReserva);
+            $stmtReserva->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmtReserva->execute();
+
+            $sqlVehiculo = "UPDATE vehiculos SET estado = 'disponible' WHERE id = :vehiculo_id";
+            $stmtVehiculo = $this->getConnection()->prepare($sqlVehiculo);
+            $stmtVehiculo->bindValue(':vehiculo_id', $reserva->getVehiculoId(), PDO::PARAM_INT);
+            $stmtVehiculo->execute();
+
+            $this->getConnection()->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            if ($this->getConnection()->inTransaction()) {
+                $this->getConnection()->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     public function cancelar(int $id): bool
@@ -195,7 +235,6 @@ class ReservaRepository extends BaseRepository implements RepositoryInterface
             $row['fecha_inicio'],
             $row['fecha_fin'],
             $row['estado'],
-            (float) $row['total_estimado'],
             $row['created_at'] ?? null,
             $row['updated_at'] ?? null
         );

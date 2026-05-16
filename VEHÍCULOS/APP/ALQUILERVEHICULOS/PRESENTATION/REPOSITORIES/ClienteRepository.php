@@ -37,16 +37,14 @@ class ClienteRepository extends BaseRepository implements RepositoryInterface
 
     public function create(Cliente $cliente): Cliente
     {
-        $sql = "INSERT INTO clientes (nombre, apellido, documento, telefono, email, licencia_conducir)
-                VALUES (:nombre, :apellido, :documento, :telefono, :email, :licencia_conducir)";
+        $sql = "INSERT INTO clientes (nombre, telefono, correo, numero_licencia)
+                VALUES (:nombre, :telefono, :correo, :numero_licencia)";
 
         $stmt = $this->getConnection()->prepare($sql);
         $stmt->bindValue(':nombre', $cliente->getNombre());
-        $stmt->bindValue(':apellido', $cliente->getApellido());
-        $stmt->bindValue(':documento', $cliente->getDocumento());
         $stmt->bindValue(':telefono', $cliente->getTelefono());
-        $stmt->bindValue(':email', $cliente->getEmail());
-        $stmt->bindValue(':licencia_conducir', $cliente->getLicenciaConducir());
+        $stmt->bindValue(':correo', $cliente->getCorreo());
+        $stmt->bindValue(':numero_licencia', $cliente->getNumeroLicencia());
         $stmt->execute();
 
         $cliente->setId((int) $this->getConnection()->lastInsertId());
@@ -54,25 +52,21 @@ class ClienteRepository extends BaseRepository implements RepositoryInterface
         return $cliente;
     }
 
-    public function update(Cliente $cliente): bool
+    public function update(int $id, Cliente $cliente): bool
     {
         $sql = "UPDATE clientes
                 SET nombre = :nombre,
-                    apellido = :apellido,
-                    documento = :documento,
                     telefono = :telefono,
-                    email = :email,
-                    licencia_conducir = :licencia_conducir
+                    correo = :correo,
+                    numero_licencia = :numero_licencia
                 WHERE id = :id";
 
         $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $cliente->getId(), PDO::PARAM_INT);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->bindValue(':nombre', $cliente->getNombre());
-        $stmt->bindValue(':apellido', $cliente->getApellido());
-        $stmt->bindValue(':documento', $cliente->getDocumento());
         $stmt->bindValue(':telefono', $cliente->getTelefono());
-        $stmt->bindValue(':email', $cliente->getEmail());
-        $stmt->bindValue(':licencia_conducir', $cliente->getLicenciaConducir());
+        $stmt->bindValue(':correo', $cliente->getCorreo());
+        $stmt->bindValue(':numero_licencia', $cliente->getNumeroLicencia());
 
         return $stmt->execute();
     }
@@ -91,11 +85,9 @@ class ClienteRepository extends BaseRepository implements RepositoryInterface
         return new Cliente(
             isset($row['id']) ? (int) $row['id'] : null,
             $row['nombre'],
-            $row['apellido'],
-            $row['documento'],
             $row['telefono'] ?? null,
-            $row['email'] ?? null,
-            $row['licencia_conducir'],
+            $row['correo'] ?? null,
+            $row['numero_licencia'] ?? null,
             $row['created_at'] ?? null,
             $row['updated_at'] ?? null
         );
