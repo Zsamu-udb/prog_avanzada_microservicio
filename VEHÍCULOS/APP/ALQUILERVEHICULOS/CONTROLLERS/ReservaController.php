@@ -9,7 +9,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-class ReservaController
+class ReservaController extends BaseController
 {
     private ReservaRepository $repository;
 
@@ -21,21 +21,24 @@ class ReservaController
     public function index(): void
     {
         $reservas = $this->repository->findAll();
-        $data = array_map(fn(Reserva $reserva) => $reserva->toArray(), $reservas);
+        $data = array_map(
+            fn(Reserva $reserva) => $reserva->toArray(),
+            $reservas
+        );
 
-        $this->jsonResponse($data, 200);
+        $this->successResponse($data);
     }
 
     public function show(int $id): void
     {
         $reserva = $this->repository->findById($id);
 
-        if (!$reserva) {
-            $this->jsonResponse(['message' => 'Reserva no encontrada'], 404);
+        if (!$reserva instanceof Reserva) {
+            $this->errorResponse('Reserva no encontrada.', 404);
             return;
         }
 
-        $this->jsonResponse($reserva->toArray(), 200);
+        $this->successResponse($reserva->toArray());
     }
 
     public function store(): void
@@ -51,11 +54,12 @@ class ReservaController
             );
 
             $reservaCreada = $this->repository->create($reserva);
-            $this->jsonResponse($reservaCreada->toArray(), 201);
+
+            $this->successResponse($reservaCreada->toArray(), 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al crear la reserva'], 500);
+            $this->errorResponse('Error al crear la reserva.', 500);
         }
     }
 
@@ -64,15 +68,18 @@ class ReservaController
         try {
             $reserva = $this->repository->findById($id);
 
-            if (!$reserva) {
-                $this->jsonResponse(['message' => 'Reserva no encontrada'], 404);
+            if (!$reserva instanceof Reserva) {
+                $this->errorResponse('Reserva no encontrada.', 404);
                 return;
             }
 
             $this->repository->finalizar($id);
-            $this->jsonResponse(['message' => 'Reserva finalizada correctamente'], 200);
+
+            $this->successResponse([
+                'message' => 'Reserva finalizada correctamente.'
+            ]);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al finalizar la reserva'], 500);
+            $this->errorResponse('Error al finalizar la reserva.', 500);
         }
     }
 
@@ -81,31 +88,40 @@ class ReservaController
         try {
             $reserva = $this->repository->findById($id);
 
-            if (!$reserva) {
-                $this->jsonResponse(['message' => 'Reserva no encontrada'], 404);
+            if (!$reserva instanceof Reserva) {
+                $this->errorResponse('Reserva no encontrada.', 404);
                 return;
             }
 
             $this->repository->cancelar($id);
-            $this->jsonResponse(['message' => 'Reserva cancelada correctamente'], 200);
+
+            $this->successResponse([
+                'message' => 'Reserva cancelada correctamente.'
+            ]);
         } catch (RuntimeException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al cancelar la reserva'], 500);
+            $this->errorResponse('Error al cancelar la reserva.', 500);
         }
     }
 
-    private function getJsonInput(): array
+    public function destroy(int $id): void
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
+        try {
+            $reserva = $this->repository->findById($id);
 
-        return is_array($data) ? $data : [];
-    }
+            if (!$reserva instanceof Reserva) {
+                $this->errorResponse('Reserva no encontrada.', 404);
+                return;
+            }
 
-    private function jsonResponse(array $data, int $statusCode): void
-    {
-        http_response_code($statusCode);
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            $this->repository->delete($id);
+
+            $this->successResponse([
+                'message' => 'Reserva eliminada correctamente.'
+            ]);
+        } catch (Throwable $e) {
+            $this->errorResponse('Error al eliminar la reserva.', 500);
+        }
     }
 }

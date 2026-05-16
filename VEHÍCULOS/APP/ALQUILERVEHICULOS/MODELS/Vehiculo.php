@@ -5,79 +5,78 @@ namespace App\AlquilerVehiculos\Models;
 
 use InvalidArgumentException;
 
-class Vehiculo
+class Vehiculo extends AbstractModel
 {
     private const ESTADOS_VALIDOS = ['disponible', 'alquilado', 'mantenimiento'];
 
-    private ?int $id;
-    private string $placa;
     private string $marca;
     private string $modelo;
-    private string $anio;
+    private int $anio;
     private string $categoria;
+    private string $placa;
     private string $estado;
     private float $precioPorDia;
-    private ?string $createdAt;
-    private ?string $updatedAt;
 
     public function __construct(
         ?int $id,
-        string $placa,
         string $marca,
         string $modelo,
-        string $anio,
+        int $anio,
         string $categoria,
-        string $estado = 'disponible',
-        float $precioPorDia = 0.00,
+        string $placa,
+        string $estado,
+        float $precioPorDia,
         ?string $createdAt = null,
         ?string $updatedAt = null
     ) {
-        $this->id = $id;
-        $this->setPlaca($placa);
+        parent::__construct($id, $createdAt, $updatedAt);
+
         $this->setMarca($marca);
         $this->setModelo($modelo);
         $this->setAnio($anio);
         $this->setCategoria($categoria);
+        $this->setPlaca($placa);
         $this->setEstado($estado);
         $this->setPrecioPorDia($precioPorDia);
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
     }
 
     public static function create(
-        string $placa,
         string $marca,
         string $modelo,
-        string $anio,
+        int $anio,
         string $categoria,
-        float $precioPorDia
+        string $placa,
+        float $precioPorDia,
+        string $estado = 'disponible'
     ): self {
         return new self(
             null,
-            $placa,
             $marca,
             $modelo,
             $anio,
             $categoria,
-            'disponible',
+            $placa,
+            $estado,
             $precioPorDia
         );
     }
 
     public function updateData(
-        string $placa,
         string $marca,
         string $modelo,
-        string $anio,
+        int $anio,
         string $categoria,
-        float $precioPorDia
+        string $placa,
+        float $precioPorDia,
+        string $estado
     ): void {
-        $this->setPlaca($placa);
         $this->setMarca($marca);
         $this->setModelo($modelo);
         $this->setAnio($anio);
         $this->setCategoria($categoria);
+        $this->setPlaca($placa);
         $this->setPrecioPorDia($precioPorDia);
+        $this->setEstado($estado);
     }
 
     public function marcarDisponible(): void
@@ -90,42 +89,54 @@ class Vehiculo
         $this->estado = 'alquilado';
     }
 
-    public function marcarMantenimiento(): void
+    public function marcarEnMantenimiento(): void
     {
         $this->estado = 'mantenimiento';
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getPlaca(): string { return $this->placa; }
-    public function getMarca(): string { return $this->marca; }
-    public function getModelo(): string { return $this->modelo; }
-    public function getAnio(): string { return $this->anio; }
-    public function getCategoria(): string { return $this->categoria; }
-    public function getEstado(): string { return $this->estado; }
-    public function getPrecioPorDia(): float { return $this->precioPorDia; }
-    public function getCreatedAt(): ?string { return $this->createdAt; }
-    public function getUpdatedAt(): ?string { return $this->updatedAt; }
-
-    public function setId(?int $id): void
+    public function estaDisponible(): bool
     {
-        $this->id = $id;
+        return $this->estado === 'disponible';
     }
 
-    public function setEstado(string $estado): void
+    public function getMarca(): string
     {
-        if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
-            throw new InvalidArgumentException('El estado del vehículo no es válido.');
-        }
-        $this->estado = $estado;
+        return $this->marca;
     }
 
-    private function setPlaca(string $placa): void
+    public function getModelo(): string
     {
-        $placa = strtoupper(trim($placa));
-        if ($placa === '') {
-            throw new InvalidArgumentException('La placa no puede estar vacía.');
-        }
-        $this->placa = $placa;
+        return $this->modelo;
+    }
+
+    public function getAnio(): int
+    {
+        return $this->anio;
+    }
+
+    public function getCategoria(): string
+    {
+        return $this->categoria;
+    }
+
+    public function getPlaca(): string
+    {
+        return $this->placa;
+    }
+
+    public function getEstado(): string
+    {
+        return $this->estado;
+    }
+
+    public function getPrecioPorDia(): float
+    {
+        return $this->precioPorDia;
+    }
+
+    public function getNombreCompleto(): string
+    {
+        return $this->marca . ' ' . $this->modelo;
     }
 
     private function setMarca(string $marca): void
@@ -134,6 +145,7 @@ class Vehiculo
         if ($marca === '') {
             throw new InvalidArgumentException('La marca no puede estar vacía.');
         }
+
         $this->marca = $marca;
     }
 
@@ -143,15 +155,17 @@ class Vehiculo
         if ($modelo === '') {
             throw new InvalidArgumentException('El modelo no puede estar vacío.');
         }
+
         $this->modelo = $modelo;
     }
 
-    private function setAnio(string $anio): void
+    private function setAnio(int $anio): void
     {
-        $anio = trim($anio);
-        if (!preg_match('/^\d{4}$/', $anio)) {
-            throw new InvalidArgumentException('El año debe tener 4 dígitos.');
+        $anioActual = (int) date('Y');
+        if ($anio < 1900 || $anio > $anioActual + 1) {
+            throw new InvalidArgumentException('El año del vehículo no es válido.');
         }
+
         $this->anio = $anio;
     }
 
@@ -161,7 +175,29 @@ class Vehiculo
         if ($categoria === '') {
             throw new InvalidArgumentException('La categoría no puede estar vacía.');
         }
+
         $this->categoria = $categoria;
+    }
+
+    private function setPlaca(string $placa): void
+    {
+        $placa = strtoupper(trim($placa));
+        if ($placa === '') {
+            throw new InvalidArgumentException('La placa no puede estar vacía.');
+        }
+
+        $this->placa = $placa;
+    }
+
+    private function setEstado(string $estado): void
+    {
+        $estado = trim(strtolower($estado));
+
+        if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
+            throw new InvalidArgumentException('El estado del vehículo no es válido.');
+        }
+
+        $this->estado = $estado;
     }
 
     private function setPrecioPorDia(float $precioPorDia): void
@@ -169,22 +205,24 @@ class Vehiculo
         if ($precioPorDia < 0) {
             throw new InvalidArgumentException('El precio por día no puede ser negativo.');
         }
+
         $this->precioPorDia = $precioPorDia;
     }
 
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
-            'placa' => $this->placa,
+            'id' => $this->getId(),
             'marca' => $this->marca,
             'modelo' => $this->modelo,
+            'nombre_completo' => $this->getNombreCompleto(),
             'anio' => $this->anio,
             'categoria' => $this->categoria,
+            'placa' => $this->placa,
             'estado' => $this->estado,
             'precio_por_dia' => $this->precioPorDia,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->updatedAt
+            'created_at' => $this->getCreatedAt(),
+            'updated_at' => $this->getUpdatedAt()
         ];
     }
 }

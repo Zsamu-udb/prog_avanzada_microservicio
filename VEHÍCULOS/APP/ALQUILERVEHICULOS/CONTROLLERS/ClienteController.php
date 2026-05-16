@@ -8,7 +8,7 @@ use App\AlquilerVehiculos\Presentation\Repositories\ClienteRepository;
 use InvalidArgumentException;
 use Throwable;
 
-class ClienteController
+class ClienteController extends BaseController
 {
     private ClienteRepository $repository;
 
@@ -20,21 +20,24 @@ class ClienteController
     public function index(): void
     {
         $clientes = $this->repository->findAll();
-        $data = array_map(fn(Cliente $cliente) => $cliente->toArray(), $clientes);
+        $data = array_map(
+            fn(Cliente $cliente) => $cliente->toArray(),
+            $clientes
+        );
 
-        $this->jsonResponse($data, 200);
+        $this->successResponse($data);
     }
 
     public function show(int $id): void
     {
         $cliente = $this->repository->findById($id);
 
-        if (!$cliente) {
-            $this->jsonResponse(['message' => 'Cliente no encontrado'], 404);
+        if (!$cliente instanceof Cliente) {
+            $this->errorResponse('Cliente no encontrado.', 404);
             return;
         }
 
-        $this->jsonResponse($cliente->toArray(), 200);
+        $this->successResponse($cliente->toArray());
     }
 
     public function store(): void
@@ -52,11 +55,12 @@ class ClienteController
             );
 
             $clienteCreado = $this->repository->create($cliente);
-            $this->jsonResponse($clienteCreado->toArray(), 201);
+
+            $this->successResponse($clienteCreado->toArray(), 201);
         } catch (InvalidArgumentException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al crear el cliente'], 500);
+            $this->errorResponse('Error al crear el cliente.', 500);
         }
     }
 
@@ -65,8 +69,8 @@ class ClienteController
         try {
             $cliente = $this->repository->findById($id);
 
-            if (!$cliente) {
-                $this->jsonResponse(['message' => 'Cliente no encontrado'], 404);
+            if (!$cliente instanceof Cliente) {
+                $this->errorResponse('Cliente no encontrado.', 404);
                 return;
             }
 
@@ -82,11 +86,12 @@ class ClienteController
             );
 
             $this->repository->update($cliente);
-            $this->jsonResponse($cliente->toArray(), 200);
+
+            $this->successResponse($cliente->toArray());
         } catch (InvalidArgumentException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al actualizar el cliente'], 500);
+            $this->errorResponse('Error al actualizar el cliente.', 500);
         }
     }
 
@@ -95,29 +100,18 @@ class ClienteController
         try {
             $cliente = $this->repository->findById($id);
 
-            if (!$cliente) {
-                $this->jsonResponse(['message' => 'Cliente no encontrado'], 404);
+            if (!$cliente instanceof Cliente) {
+                $this->errorResponse('Cliente no encontrado.', 404);
                 return;
             }
 
             $this->repository->delete($id);
-            $this->jsonResponse(['message' => 'Cliente eliminado correctamente'], 200);
+
+            $this->successResponse([
+                'message' => 'Cliente eliminado correctamente.'
+            ]);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al eliminar el cliente'], 500);
+            $this->errorResponse('Error al eliminar el cliente.', 500);
         }
-    }
-
-    private function getJsonInput(): array
-    {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-
-        return is_array($data) ? $data : [];
-    }
-
-    private function jsonResponse(array $data, int $statusCode): void
-    {
-        http_response_code($statusCode);
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 }

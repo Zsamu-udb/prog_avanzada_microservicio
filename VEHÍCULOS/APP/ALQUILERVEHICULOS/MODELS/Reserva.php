@@ -6,19 +6,16 @@ namespace App\AlquilerVehiculos\Models;
 use DateTime;
 use InvalidArgumentException;
 
-class Reserva
+class Reserva extends AbstractModel
 {
     private const ESTADOS_VALIDOS = ['activa', 'finalizada', 'cancelada'];
 
-    private ?int $id;
     private int $clienteId;
     private int $vehiculoId;
     private string $fechaInicio;
     private string $fechaFin;
     private string $estado;
     private float $totalEstimado;
-    private ?string $createdAt;
-    private ?string $updatedAt;
 
     public function __construct(
         ?int $id,
@@ -27,11 +24,12 @@ class Reserva
         string $fechaInicio,
         string $fechaFin,
         string $estado = 'activa',
-        float $totalEstimado = 0.00,
+        float $totalEstimado = 0.0,
         ?string $createdAt = null,
         ?string $updatedAt = null
     ) {
-        $this->id = $id;
+        parent::__construct($id, $createdAt, $updatedAt);
+
         $this->setClienteId($clienteId);
         $this->setVehiculoId($vehiculoId);
         $this->setFechaInicio($fechaInicio);
@@ -39,8 +37,6 @@ class Reserva
         $this->setEstado($estado);
         $this->setTotalEstimado($totalEstimado);
         $this->validateDateRange();
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
     }
 
     public static function create(
@@ -49,10 +45,16 @@ class Reserva
         string $fechaInicio,
         string $fechaFin
     ): self {
-        return new self(null, $clienteId, $vehiculoId, $fechaInicio, $fechaFin);
+        return new self(
+            null,
+            $clienteId,
+            $vehiculoId,
+            $fechaInicio,
+            $fechaFin
+        );
     }
 
-    public function actualizarPeriodo(string $fechaInicio, string $fechaFin): void
+    public function updatePeriodo(string $fechaInicio, string $fechaFin): void
     {
         $this->setFechaInicio($fechaInicio);
         $this->setFechaFin($fechaFin);
@@ -86,19 +88,34 @@ class Reserva
         $this->totalEstimado = $dias * $precioPorDia;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getClienteId(): int { return $this->clienteId; }
-    public function getVehiculoId(): int { return $this->vehiculoId; }
-    public function getFechaInicio(): string { return $this->fechaInicio; }
-    public function getFechaFin(): string { return $this->fechaFin; }
-    public function getEstado(): string { return $this->estado; }
-    public function getTotalEstimado(): float { return $this->totalEstimado; }
-    public function getCreatedAt(): ?string { return $this->createdAt; }
-    public function getUpdatedAt(): ?string { return $this->updatedAt; }
-
-    public function setId(?int $id): void
+    public function getClienteId(): int
     {
-        $this->id = $id;
+        return $this->clienteId;
+    }
+
+    public function getVehiculoId(): int
+    {
+        return $this->vehiculoId;
+    }
+
+    public function getFechaInicio(): string
+    {
+        return $this->fechaInicio;
+    }
+
+    public function getFechaFin(): string
+    {
+        return $this->fechaFin;
+    }
+
+    public function getEstado(): string
+    {
+        return $this->estado;
+    }
+
+    public function getTotalEstimado(): float
+    {
+        return $this->totalEstimado;
     }
 
     private function setClienteId(int $clienteId): void
@@ -106,6 +123,7 @@ class Reserva
         if ($clienteId <= 0) {
             throw new InvalidArgumentException('El cliente_id debe ser mayor que cero.');
         }
+
         $this->clienteId = $clienteId;
     }
 
@@ -114,6 +132,7 @@ class Reserva
         if ($vehiculoId <= 0) {
             throw new InvalidArgumentException('El vehiculo_id debe ser mayor que cero.');
         }
+
         $this->vehiculoId = $vehiculoId;
     }
 
@@ -129,35 +148,24 @@ class Reserva
         $this->fechaFin = $fechaFin;
     }
 
-    public function setEstado(string $estado): void
+    private function setEstado(string $estado): void
     {
+        $estado = strtolower(trim($estado));
+
         if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
             throw new InvalidArgumentException('El estado de la reserva no es válido.');
         }
+
         $this->estado = $estado;
     }
 
-    public function setTotalEstimado(float $totalEstimado): void
+    private function setTotalEstimado(float $totalEstimado): void
     {
         if ($totalEstimado < 0) {
             throw new InvalidArgumentException('El total estimado no puede ser negativo.');
         }
-        $this->totalEstimado = $totalEstimado;
-    }
 
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'cliente_id' => $this->clienteId,
-            'vehiculo_id' => $this->vehiculoId,
-            'fecha_inicio' => $this->fechaInicio,
-            'fecha_fin' => $this->fechaFin,
-            'estado' => $this->estado,
-            'total_estimado' => $this->totalEstimado,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->updatedAt
-        ];
+        $this->totalEstimado = $totalEstimado;
     }
 
     private function validateDateRange(): void
@@ -170,8 +178,24 @@ class Reserva
     private function assertValidDate(string $date, string $message): void
     {
         $dateTime = DateTime::createFromFormat('Y-m-d', $date);
+
         if (!$dateTime || $dateTime->format('Y-m-d') !== $date) {
             throw new InvalidArgumentException($message);
         }
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'cliente_id' => $this->clienteId,
+            'vehiculo_id' => $this->vehiculoId,
+            'fecha_inicio' => $this->fechaInicio,
+            'fecha_fin' => $this->fechaFin,
+            'estado' => $this->estado,
+            'total_estimado' => $this->totalEstimado,
+            'created_at' => $this->getCreatedAt(),
+            'updated_at' => $this->getUpdatedAt()
+        ];
     }
 }

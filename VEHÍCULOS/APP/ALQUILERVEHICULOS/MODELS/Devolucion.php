@@ -6,17 +6,14 @@ namespace App\AlquilerVehiculos\Models;
 use DateTime;
 use InvalidArgumentException;
 
-class Devolucion
+class Devolucion extends AbstractModel
 {
     private const ESTADOS_VALIDOS = ['disponible', 'mantenimiento'];
 
-    private ?int $id;
     private int $reservaId;
     private string $fechaDevolucion;
     private ?string $observaciones;
     private string $estadoVehiculo;
-    private ?string $createdAt;
-    private ?string $updatedAt;
 
     public function __construct(
         ?int $id,
@@ -27,13 +24,12 @@ class Devolucion
         ?string $createdAt = null,
         ?string $updatedAt = null
     ) {
-        $this->id = $id;
+        parent::__construct($id, $createdAt, $updatedAt);
+
         $this->setReservaId($reservaId);
         $this->setFechaDevolucion($fechaDevolucion);
         $this->setObservaciones($observaciones);
         $this->setEstadoVehiculo($estadoVehiculo);
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
     }
 
     public static function create(
@@ -61,17 +57,24 @@ class Devolucion
         $this->estadoVehiculo = 'mantenimiento';
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getReservaId(): int { return $this->reservaId; }
-    public function getFechaDevolucion(): string { return $this->fechaDevolucion; }
-    public function getObservaciones(): ?string { return $this->observaciones; }
-    public function getEstadoVehiculo(): string { return $this->estadoVehiculo; }
-    public function getCreatedAt(): ?string { return $this->createdAt; }
-    public function getUpdatedAt(): ?string { return $this->updatedAt; }
-
-    public function setId(?int $id): void
+    public function getReservaId(): int
     {
-        $this->id = $id;
+        return $this->reservaId;
+    }
+
+    public function getFechaDevolucion(): string
+    {
+        return $this->fechaDevolucion;
+    }
+
+    public function getObservaciones(): ?string
+    {
+        return $this->observaciones;
+    }
+
+    public function getEstadoVehiculo(): string
+    {
+        return $this->estadoVehiculo;
     }
 
     private function setReservaId(int $reservaId): void
@@ -79,15 +82,18 @@ class Devolucion
         if ($reservaId <= 0) {
             throw new InvalidArgumentException('El reserva_id debe ser mayor que cero.');
         }
+
         $this->reservaId = $reservaId;
     }
 
     private function setFechaDevolucion(string $fechaDevolucion): void
     {
         $dateTime = DateTime::createFromFormat('Y-m-d', $fechaDevolucion);
+
         if (!$dateTime || $dateTime->format('Y-m-d') !== $fechaDevolucion) {
             throw new InvalidArgumentException('La fecha de devolución no es válida.');
         }
+
         $this->fechaDevolucion = $fechaDevolucion;
     }
 
@@ -96,24 +102,27 @@ class Devolucion
         $this->observaciones = $observaciones !== null ? trim($observaciones) : null;
     }
 
-    public function setEstadoVehiculo(string $estadoVehiculo): void
+    private function setEstadoVehiculo(string $estadoVehiculo): void
     {
+        $estadoVehiculo = strtolower(trim($estadoVehiculo));
+
         if (!in_array($estadoVehiculo, self::ESTADOS_VALIDOS, true)) {
-            throw new InvalidArgumentException('El estado del vehículo no es válido para devolución.');
+            throw new InvalidArgumentException('El estado final del vehículo no es válido.');
         }
+
         $this->estadoVehiculo = $estadoVehiculo;
     }
 
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->getId(),
             'reserva_id' => $this->reservaId,
             'fecha_devolucion' => $this->fechaDevolucion,
             'observaciones' => $this->observaciones,
             'estado_vehiculo' => $this->estadoVehiculo,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->updatedAt
+            'created_at' => $this->getCreatedAt(),
+            'updated_at' => $this->getUpdatedAt()
         ];
     }
 }

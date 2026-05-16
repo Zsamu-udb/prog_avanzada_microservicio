@@ -8,7 +8,7 @@ use App\AlquilerVehiculos\Presentation\Repositories\VehiculoRepository;
 use InvalidArgumentException;
 use Throwable;
 
-class VehiculoController
+class VehiculoController extends BaseController
 {
     private VehiculoRepository $repository;
 
@@ -20,29 +20,35 @@ class VehiculoController
     public function index(): void
     {
         $vehiculos = $this->repository->findAll();
-        $data = array_map(fn(Vehiculo $vehiculo) => $vehiculo->toArray(), $vehiculos);
+        $data = array_map(
+            fn(Vehiculo $vehiculo) => $vehiculo->toArray(),
+            $vehiculos
+        );
 
-        $this->jsonResponse($data, 200);
+        $this->successResponse($data);
     }
 
     public function disponibles(): void
     {
-        $vehiculos = $this->repository->findDisponibles();
-        $data = array_map(fn(Vehiculo $vehiculo) => $vehiculo->toArray(), $vehiculos);
+        $vehiculos = $this->repository->findAvailable();
+        $data = array_map(
+            fn(Vehiculo $vehiculo) => $vehiculo->toArray(),
+            $vehiculos
+        );
 
-        $this->jsonResponse($data, 200);
+        $this->successResponse($data);
     }
 
     public function show(int $id): void
     {
         $vehiculo = $this->repository->findById($id);
 
-        if (!$vehiculo) {
-            $this->jsonResponse(['message' => 'Vehículo no encontrado'], 404);
+        if (!$vehiculo instanceof Vehiculo) {
+            $this->errorResponse('Vehículo no encontrado.', 404);
             return;
         }
 
-        $this->jsonResponse($vehiculo->toArray(), 200);
+        $this->successResponse($vehiculo->toArray());
     }
 
     public function store(): void
@@ -51,20 +57,22 @@ class VehiculoController
             $data = $this->getJsonInput();
 
             $vehiculo = Vehiculo::create(
-                $data['placa'] ?? '',
                 $data['marca'] ?? '',
                 $data['modelo'] ?? '',
-                (string) ($data['anio'] ?? ''),
+                (int) ($data['anio'] ?? 0),
                 $data['categoria'] ?? '',
-                isset($data['precio_por_dia']) ? (float) $data['precio_por_dia'] : 0.00
+                $data['placa'] ?? '',
+                (float) ($data['precio_por_dia'] ?? 0),
+                $data['estado'] ?? 'disponible'
             );
 
             $vehiculoCreado = $this->repository->create($vehiculo);
-            $this->jsonResponse($vehiculoCreado->toArray(), 201);
+
+            $this->successResponse($vehiculoCreado->toArray(), 201);
         } catch (InvalidArgumentException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al crear el vehículo'], 500);
+            $this->errorResponse('Error al crear el vehículo.', 500);
         }
     }
 
@@ -73,32 +81,63 @@ class VehiculoController
         try {
             $vehiculo = $this->repository->findById($id);
 
-            if (!$vehiculo) {
-                $this->jsonResponse(['message' => 'Vehículo no encontrado'], 404);
+            if (!$vehiculo instanceof Vehiculo) {
+                $this->errorResponse('Vehículo no encontrado.', 404);
                 return;
             }
 
             $data = $this->getJsonInput();
 
             $vehiculo->updateData(
-                $data['placa'] ?? $vehiculo->getPlaca(),
                 $data['marca'] ?? $vehiculo->getMarca(),
                 $data['modelo'] ?? $vehiculo->getModelo(),
-                (string) ($data['anio'] ?? $vehiculo->getAnio()),
+                (int) ($data['anio'] ?? $vehiculo->getAnio()),
                 $data['categoria'] ?? $vehiculo->getCategoria(),
-                isset($data['precio_por_dia']) ? (float) $data['precio_por_dia'] : $vehiculo->getPrecioPorDia()
+                $data['placa'] ?? $vehiculo->getPlaca(),
+                (float) ($data['precio_por_dia'] ?? $vehiculo->getPrecioPorDia()),
+                $data['estado'] ?? $vehiculo->getEstado()
             );
 
-            if (isset($data['estado'])) {
-                $vehiculo->setEstado($data['estado']);
+            $this->repository->update($vehiculo);
+
+            $this->successResponse($vehiculo->toArray());
+        } catch (InvalidArgumentException $e) {
+            $this->errorResponse($e->getMessage(), 400);
+        } catch (Throwable $e) {
+            $this->errorResponse('Error al actualizar el vehículo.', 500);
+        }
+    }
+
+    public function updateEstado(int $id): void
+    {
+        try {
+            $vehiculo = $this->repository->findById($id);
+
+            if (!$vehiculo instanceof Vehiculo) {
+                $this->errorResponse('Vehículo no encontrado.', 404);
+                return;
             }
 
-            $this->repository->update($vehiculo);
-            $this->jsonResponse($vehiculo->toArray(), 200);
+            $data = $this->getJsonInput();
+            $estado = $data['estado'] ?? '';
+
+            $vehiculo->updateData(
+                $vehiculo->getMarca(),
+                $vehiculo->getModelo(),
+                $vehiculo->getAnio(),
+                $vehiculo->getCategoria(),
+                $vehiculo->getPlaca(),
+                $vehiculo->getPrecioPorDia(),
+                $estado
+            );
+
+            $this->repository->updateEstado($id, $vehiculo->getEstado());
+
+            $this->successResponse($vehiculo->toArray());
         } catch (InvalidArgumentException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al actualizar el vehículo'], 500);
+            $this->errorResponse('Error al cambiar el estado del vehículo.', 500);
         }
     }
 
@@ -107,53 +146,18 @@ class VehiculoController
         try {
             $vehiculo = $this->repository->findById($id);
 
-            if (!$vehiculo) {
-                $this->jsonResponse(['message' => 'Vehículo no encontrado'], 404);
+            if (!$vehiculo instanceof Vehiculo) {
+                $this->errorResponse('Vehículo no encontrado.', 404);
                 return;
             }
 
             $this->repository->delete($id);
-            $this->jsonResponse(['message' => 'Vehículo eliminado correctamente'], 200);
+
+            $this->successResponse([
+                'message' => 'Vehículo eliminado correctamente.'
+            ]);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al eliminar el vehículo'], 500);
+            $this->errorResponse('Error al eliminar el vehículo.', 500);
         }
-    }
-
-    public function changeEstado(int $id): void
-    {
-        try {
-            $vehiculo = $this->repository->findById($id);
-
-            if (!$vehiculo) {
-                $this->jsonResponse(['message' => 'Vehículo no encontrado'], 404);
-                return;
-            }
-
-            $data = $this->getJsonInput();
-            $estado = $data['estado'] ?? '';
-
-            $vehiculo->setEstado($estado);
-            $this->repository->updateEstado($id, $vehiculo->getEstado());
-
-            $this->jsonResponse($vehiculo->toArray(), 200);
-        } catch (InvalidArgumentException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
-        } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al cambiar el estado del vehículo'], 500);
-        }
-    }
-
-    private function getJsonInput(): array
-    {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-
-        return is_array($data) ? $data : [];
-    }
-
-    private function jsonResponse(array $data, int $statusCode): void
-    {
-        http_response_code($statusCode);
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 }

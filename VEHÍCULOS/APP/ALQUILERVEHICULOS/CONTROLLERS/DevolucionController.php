@@ -9,7 +9,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-class DevolucionController
+class DevolucionController extends BaseController
 {
     private DevolucionRepository $repository;
 
@@ -21,21 +21,24 @@ class DevolucionController
     public function index(): void
     {
         $devoluciones = $this->repository->findAll();
-        $data = array_map(fn(Devolucion $devolucion) => $devolucion->toArray(), $devoluciones);
+        $data = array_map(
+            fn(Devolucion $devolucion) => $devolucion->toArray(),
+            $devoluciones
+        );
 
-        $this->jsonResponse($data, 200);
+        $this->successResponse($data);
     }
 
     public function show(int $id): void
     {
         $devolucion = $this->repository->findById($id);
 
-        if (!$devolucion) {
-            $this->jsonResponse(['message' => 'Devolución no encontrada'], 404);
+        if (!$devolucion instanceof Devolucion) {
+            $this->errorResponse('Devolución no encontrada.', 404);
             return;
         }
 
-        $this->jsonResponse($devolucion->toArray(), 200);
+        $this->successResponse($devolucion->toArray());
     }
 
     public function store(): void
@@ -51,25 +54,32 @@ class DevolucionController
             );
 
             $devolucionCreada = $this->repository->create($devolucion);
-            $this->jsonResponse($devolucionCreada->toArray(), 201);
+
+            $this->successResponse($devolucionCreada->toArray(), 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
-            $this->jsonResponse(['message' => $e->getMessage()], 400);
+            $this->errorResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            $this->jsonResponse(['message' => 'Error al registrar la devolución'], 500);
+            $this->errorResponse('Error al registrar la devolución.', 500);
         }
     }
 
-    private function getJsonInput(): array
+    public function destroy(int $id): void
     {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
+        try {
+            $devolucion = $this->repository->findById($id);
 
-        return is_array($data) ? $data : [];
-    }
+            if (!$devolucion instanceof Devolucion) {
+                $this->errorResponse('Devolución no encontrada.', 404);
+                return;
+            }
 
-    private function jsonResponse(array $data, int $statusCode): void
-    {
-        http_response_code($statusCode);
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            $this->repository->delete($id);
+
+            $this->successResponse([
+                'message' => 'Devolución eliminada correctamente.'
+            ]);
+        } catch (Throwable $e) {
+            $this->errorResponse('Error al eliminar la devolución.', 500);
+        }
     }
 }
