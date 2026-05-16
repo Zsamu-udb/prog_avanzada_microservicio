@@ -1,0 +1,151 @@
+### Hola mundo
+GET http://127.0.0.1:8000
+
+### CLIENTES #####################################
+
+### consultar todos los clientes
+GET http://127.0.0.1:8000/clientes
+
+### consultar cliente
+GET http://127.0.0.1:8000/clientes/1
+
+### crear cliente
+POST http://127.0.0.1:8000/clientes
+Content-Type: application/json
+
+{
+    "nombre": "Juan",
+    "apellido": "Perez",
+    "documento": "12345678",
+    "telefono": "3001234567",
+    "email": "juan@test.com",
+    "licencia_conducir": "LIC-001"
+}
+
+### modificar cliente
+PUT http://127.0.0.1:8000/clientes/1
+Content-Type: application/json
+
+{
+    "nombre": "Juan Carlos",
+    "apellido": "Perez",
+    "documento": "12345678",
+    "telefono": "3009999999",
+    "email": "juancarlos@test.com",
+    "licencia_conducir": "LIC-001"
+}
+
+### borrar cliente
+DELETE http://127.0.0.1:8000/clientes/1
+
+### VEHICULOS ####################################
+
+### consultar todos los vehiculos
+GET http://127.0.0.1:8000/vehiculos
+
+### consultar vehiculo
+GET http://127.0.0.1:8000/vehiculos/1
+
+### consultar vehiculos disponibles
+GET http://127.0.0.1:8000/vehiculos/disponibles
+
+### crear vehiculo
+POST http://127.0.0.1:8000/vehiculos
+Content-Type: application/json
+
+{
+    "marca": "Toyota",
+    "modelo": "Corolla",
+    "anio": 2022,
+    "categoria": "Sedan",
+    "placa": "ABC123",
+    "estado": "disponible",
+    "precio_por_dia": 120000
+}
+
+### modificar vehiculo
+PUT http://127.0.0.1:8000/vehiculos/1
+Content-Type: application/json
+
+{
+    "marca": "Toyota",
+    "modelo": "Corolla Cross",
+    "anio": 2023,
+    "categoria": "SUV",
+    "placa": "ABC123",
+    "estado": "disponible",
+    "precio_por_dia": 150000
+}
+
+### cambiar estado vehiculo
+PUT http://127.0.0.1:8000/vehiculos/1/estado
+Content-Type: application/json
+
+{
+    "estado": "mantenimiento"
+}
+
+### borrar vehiculo
+DELETE http://127.0.0.1:8000/vehiculos/1
+
+### RESERVAS #####################################
+
+### consultar todas las reservas
+GET http://127.0.0.1:8000/reservas
+
+### consultar reserva
+GET http://127.0.0.1:8000/reservas/1
+
+### crear reserva
+POST http://127.0.0.1:8000/reservas
+Content-Type: application/json
+
+{
+    "cliente_id": 1,
+    "vehiculo_id": 1,
+    "fecha_inicio": "2026-05-20",
+    "fecha_fin": "2026-05-25"
+}
+
+### finalizar reserva
+PUT http://127.0.0.1:8000/reservas/1/finalizar
+Content-Type: application/json
+
+{
+}
+
+### cancelar reserva
+PUT http://127.0.0.1:8000/reservas/1/cancelar
+Content-Type: application/json
+
+{
+}
+
+### borrar reserva
+DELETE http://127.0.0.1:8000/reservas/1
+
+### DEVOLUCIONES #################################
+
+### consultar todas las devoluciones
+GET http://127.0.0.1:8000/devoluciones
+
+### consultar devolucion
+GET http://127.0.0.1:8000/devoluciones/1
+
+### crear devolucion
+POST http://127.0.0.1:8000/devoluciones
+Content-Type: application/json
+
+{
+    "reserva_id": 1,
+    "fecha_devolucion": "2026-05-26",
+    "observaciones": "Vehiculo entregado en buen estado",
+    "estado_vehiculo": "disponible"
+}
+
+### borrar devolucion
+DELETE http://127.0.0.1:8000/devoluciones/1
+
+### TEST #########################################
+
+GET http://127.0.0.1:8000/test

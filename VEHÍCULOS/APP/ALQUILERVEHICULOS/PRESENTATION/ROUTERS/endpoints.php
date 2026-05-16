@@ -5,131 +5,143 @@ use App\AlquilerVehiculos\Controllers\ClienteController;
 use App\AlquilerVehiculos\Controllers\VehiculoController;
 use App\AlquilerVehiculos\Controllers\ReservaController;
 use App\AlquilerVehiculos\Controllers\DevolucionController;
+use Slim\App;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
-$controller = new ClienteController();
-$method = $_SERVER['REQUEST_METHOD'];
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+return function (App $app): void {
+    $clienteController = new ClienteController();
+    $vehiculoController = new VehiculoController();
+    $reservaController = new ReservaController();
+    $devolucionController = new DevolucionController();
 
-$uri = rtrim($uri, '/');
+    /*
+    |--------------------------------------------------------------------------
+    | CLIENTES
+    |--------------------------------------------------------------------------
+    */
+    $app->get('/clientes', function (Request $request, Response $response) use ($clienteController) {
+        $clienteController->index();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/clientes' && $method === 'GET') {
-    $controller->index();
-    return;
-}
+    $app->post('/clientes', function (Request $request, Response $response) use ($clienteController) {
+        $clienteController->store();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/clientes' && $method === 'POST') {
-    $controller->store();
-    return;
-}
+    $app->get('/clientes/{id}', function (Request $request, Response $response, array $args) use ($clienteController) {
+        $clienteController->show((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if (preg_match('#^/clientes/(\d+)$#', $uri, $matches)) {
-    $id = (int) $matches[1];
+    $app->put('/clientes/{id}', function (Request $request, Response $response, array $args) use ($clienteController) {
+        $clienteController->update((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-    if ($method === 'GET') {
-        $controller->show($id);
-        return;
-    }
+    $app->delete('/clientes/{id}', function (Request $request, Response $response, array $args) use ($clienteController) {
+        $clienteController->destroy((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-    if ($method === 'PUT') {
-        $controller->update($id);
-        return;
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | VEHICULOS
+    |--------------------------------------------------------------------------
+    */
+    $app->get('/vehiculos', function (Request $request, Response $response) use ($vehiculoController) {
+        $vehiculoController->index();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-    if ($method === 'DELETE') {
-        $controller->destroy($id);
-        return;
-    }
-}
+    $app->get('/vehiculos/disponibles', function (Request $request, Response $response) use ($vehiculoController) {
+        $vehiculoController->disponibles();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-$vehiculoController = new VehiculoController();
+    $app->post('/vehiculos', function (Request $request, Response $response) use ($vehiculoController) {
+        $vehiculoController->store();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/vehiculos' && $method === 'GET') {
-    $vehiculoController->index();
-    return;
-}
+    $app->get('/vehiculos/{id}', function (Request $request, Response $response, array $args) use ($vehiculoController) {
+        $vehiculoController->show((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/vehiculos/disponibles' && $method === 'GET') {
-    $vehiculoController->disponibles();
-    return;
-}
+    $app->put('/vehiculos/{id}', function (Request $request, Response $response, array $args) use ($vehiculoController) {
+        $vehiculoController->update((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/vehiculos' && $method === 'POST') {
-    $vehiculoController->store();
-    return;
-}
+    $app->put('/vehiculos/{id}/estado', function (Request $request, Response $response, array $args) use ($vehiculoController) {
+        $vehiculoController->updateEstado((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if (preg_match('#^/vehiculos/(\d+)$#', $uri, $matches)) {
-    $id = (int) $matches[1];
+    $app->delete('/vehiculos/{id}', function (Request $request, Response $response, array $args) use ($vehiculoController) {
+        $vehiculoController->destroy((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-    if ($method === 'GET') {
-        $vehiculoController->show($id);
-        return;
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | RESERVAS
+    |--------------------------------------------------------------------------
+    */
+    $app->get('/reservas', function (Request $request, Response $response) use ($reservaController) {
+        $reservaController->index();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-    if ($method === 'PUT') {
-        $vehiculoController->update($id);
-        return;
-    }
+    $app->post('/reservas', function (Request $request, Response $response) use ($reservaController) {
+        $reservaController->store();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-    if ($method === 'DELETE') {
-        $vehiculoController->destroy($id);
-        return;
-    }
-}
+    $app->get('/reservas/{id}', function (Request $request, Response $response, array $args) use ($reservaController) {
+        $reservaController->show((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if (preg_match('#^/vehiculos/(\d+)/estado$#', $uri, $matches) && $method === 'PUT') {
-    $id = (int) $matches[1];
-    $vehiculoController->changeEstado($id);
-    return;
-}
+    $app->put('/reservas/{id}/finalizar', function (Request $request, Response $response, array $args) use ($reservaController) {
+        $reservaController->finalizar((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-$reservaController = new ReservaController();
+    $app->put('/reservas/{id}/cancelar', function (Request $request, Response $response, array $args) use ($reservaController) {
+        $reservaController->cancelar((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/reservas' && $method === 'GET') {
-    $reservaController->index();
-    return;
-}
+    $app->delete('/reservas/{id}', function (Request $request, Response $response, array $args) use ($reservaController) {
+        $reservaController->destroy((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if ($uri === '/reservas' && $method === 'POST') {
-    $reservaController->store();
-    return;
-}
+    /*
+    |--------------------------------------------------------------------------
+    | DEVOLUCIONES
+    |--------------------------------------------------------------------------
+    */
+    $app->get('/devoluciones', function (Request $request, Response $response) use ($devolucionController) {
+        $devolucionController->index();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if (preg_match('#^/reservas/(\d+)$#', $uri, $matches) && $method === 'GET') {
-    $id = (int) $matches[1];
-    $reservaController->show($id);
-    return;
-}
+    $app->post('/devoluciones', function (Request $request, Response $response) use ($devolucionController) {
+        $devolucionController->store();
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if (preg_match('#^/reservas/(\d+)/finalizar$#', $uri, $matches) && $method === 'PUT') {
-    $id = (int) $matches[1];
-    $reservaController->finalizar($id);
-    return;
-}
+    $app->get('/devoluciones/{id}', function (Request $request, Response $response, array $args) use ($devolucionController) {
+        $devolucionController->show((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 
-if (preg_match('#^/reservas/(\d+)/cancelar$#', $uri, $matches) && $method === 'PUT') {
-    $id = (int) $matches[1];
-    $reservaController->cancelar($id);
-    return;
-}
-
-$devolucionController = new DevolucionController();
-
-if ($uri === '/devoluciones' && $method === 'GET') {
-    $devolucionController->index();
-    return;
-}
-
-if ($uri === '/devoluciones' && $method === 'POST') {
-    $devolucionController->store();
-    return;
-}
-
-if (preg_match('#^/devoluciones/(\d+)$#', $uri, $matches) && $method === 'GET') {
-    $id = (int) $matches[1];
-    $devolucionController->show($id);
-    return;
-}
-
-http_response_code(404);
-echo json_encode(['message' => 'Ruta no encontrada'], JSON_UNESCAPED_UNICODE);
+    $app->delete('/devoluciones/{id}', function (Request $request, Response $response, array $args) use ($devolucionController) {
+        $devolucionController->destroy((int) $args['id']);
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+};
