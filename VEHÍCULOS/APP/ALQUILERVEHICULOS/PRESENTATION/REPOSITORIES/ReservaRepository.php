@@ -1,242 +1,107 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Presentation\Repositories;
+namespace ALQUILERVEHICULOS\Presentation\Repositories;
 
-use App\AlquilerVehiculos\Models\Reserva;
-use App\AlquilerVehiculos\Presentation\Repositories\Contracts\RepositoryInterface;
-use PDO;
-use RuntimeException;
-use Throwable;
+use ALQUILERVEHICULOS\Controllers\ReservaController;
+use Exception;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
-class ReservaRepository extends BaseRepository implements RepositoryInterface
+class ReservaRepository extends AbstractRepository
 {
-    public function findAll(): array
+    public function all(Request $request, Response $response): Response
     {
-        $sql = "SELECT * FROM reservas ORDER BY id DESC";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute();
+        $controller = new ReservaController();
+        $reservas = $controller->getReservas();
 
-        $reservas = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $reservas[] = $this->mapRowToReserva($row);
-        }
-
-        return $reservas;
+        return $this->json($response, $reservas);
     }
 
-    public function findById(int $id): ?object
-    {
-        $sql = "SELECT * FROM reservas WHERE id = :id LIMIT 1";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $row ? $this->mapRowToReserva($row) : null;
-    }
-
-    public function create(Reserva $reserva): Reserva
+    public function detail(Request $request, Response $response, array $args): Response
     {
         try {
-            $this->getConnection()->beginTransaction();
+            $id = (int) $args['id'];
 
-            if (!$this->clienteExiste($reserva->getClienteId())) {
-                throw new RuntimeException('El cliente no existe.');
-            }
+            $controller = new ReservaController();
+            $reserva = $controller->getReserva($id);
 
-            $vehiculo = $this->obtenerVehiculo($reserva->getVehiculoId());
-            if (!$vehiculo) {
-                throw new RuntimeException('El vehículo no existe.');
-            }
-
-            if ($vehiculo['estado'] !== 'disponible') {
-                throw new RuntimeException('El vehículo no está disponible para reserva.');
-            }
-
-            if ($this->existeCruceDeReserva(
-                $reserva->getVehiculoId(),
-                $reserva->getFechaInicio(),
-                $reserva->getFechaFin()
-            )) {
-                throw new RuntimeException('Ya existe una reserva activa para ese vehículo en ese rango de fechas.');
-            }
-
-            $sql = "INSERT INTO reservas (cliente_id, vehiculo_id, fecha_inicio, fecha_fin, estado)
-                    VALUES (:cliente_id, :vehiculo_id, :fecha_inicio, :fecha_fin, :estado)";
-
-            $stmt = $this->getConnection()->prepare($sql);
-            $stmt->bindValue(':cliente_id', $reserva->getClienteId(), PDO::PARAM_INT);
-            $stmt->bindValue(':vehiculo_id', $reserva->getVehiculoId(), PDO::PARAM_INT);
-            $stmt->bindValue(':fecha_inicio', $reserva->getFechaInicio());
-            $stmt->bindValue(':fecha_fin', $reserva->getFechaFin());
-            $stmt->bindValue(':estado', $reserva->getEstado());
-            $stmt->execute();
-
-            $reserva->setId((int) $this->getConnection()->lastInsertId());
-
-            $sqlVehiculo = "UPDATE vehiculos SET estado = 'alquilado' WHERE id = :id";
-            $stmtVehiculo = $this->getConnection()->prepare($sqlVehiculo);
-            $stmtVehiculo->bindValue(':id', $reserva->getVehiculoId(), PDO::PARAM_INT);
-            $stmtVehiculo->execute();
-
-            $this->getConnection()->commit();
-
-            return $reserva;
-        } catch (Throwable $e) {
-            if ($this->getConnection()->inTransaction()) {
-                $this->getConnection()->rollBack();
-            }
-
-            throw $e;
+            return $this->json($response, $reserva->toJson());
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
         }
     }
 
-    public function update(int $id, Reserva $reserva): bool
-    {
-        $sql = "UPDATE reservas
-                SET cliente_id = :cliente_id,
-                    vehiculo_id = :vehiculo_id,
-                    fecha_inicio = :fecha_inicio,
-                    fecha_fin = :fecha_fin,
-                    estado = :estado
-                WHERE id = :id";
-
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->bindValue(':cliente_id', $reserva->getClienteId(), PDO::PARAM_INT);
-        $stmt->bindValue(':vehiculo_id', $reserva->getVehiculoId(), PDO::PARAM_INT);
-        $stmt->bindValue(':fecha_inicio', $reserva->getFechaInicio());
-        $stmt->bindValue(':fecha_fin', $reserva->getFechaFin());
-        $stmt->bindValue(':estado', $reserva->getEstado());
-
-        return $stmt->execute();
-    }
-
-    public function completar(int $id): bool
+    public function create(Request $request, Response $response): Response
     {
         try {
-            $this->getConnection()->beginTransaction();
+            $data = $this->obtenerDatos($request);
 
-            $reserva = $this->findById($id);
-            if (!$reserva instanceof Reserva) {
-                throw new RuntimeException('La reserva no existe.');
-            }
+            $controller = new ReservaController();
+            $reserva = $controller->guardarReserva($data);
 
-            $sqlReserva = "UPDATE reservas SET estado = 'completada' WHERE id = :id";
-            $stmtReserva = $this->getConnection()->prepare($sqlReserva);
-            $stmtReserva->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmtReserva->execute();
-
-            $sqlVehiculo = "UPDATE vehiculos SET estado = 'disponible' WHERE id = :vehiculo_id";
-            $stmtVehiculo = $this->getConnection()->prepare($sqlVehiculo);
-            $stmtVehiculo->bindValue(':vehiculo_id', $reserva->getVehiculoId(), PDO::PARAM_INT);
-            $stmtVehiculo->execute();
-
-            $this->getConnection()->commit();
-
-            return true;
-        } catch (Throwable $e) {
-            if ($this->getConnection()->inTransaction()) {
-                $this->getConnection()->rollBack();
-            }
-
-            throw $e;
+            return $this->json($response, $reserva, 201);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
         }
     }
 
-    public function cancelar(int $id): bool
+    public function update(Request $request, Response $response, array $args): Response
     {
         try {
-            $this->getConnection()->beginTransaction();
+            $id = (int) $args['id'];
+            $data = $this->obtenerDatos($request);
 
-            $reserva = $this->findById($id);
-            if (!$reserva instanceof Reserva) {
-                throw new RuntimeException('La reserva no existe.');
-            }
+            $controller = new ReservaController();
+            $reserva = $controller->modificarReserva($id, $data);
 
-            $sqlReserva = "UPDATE reservas SET estado = 'cancelada' WHERE id = :id";
-            $stmtReserva = $this->getConnection()->prepare($sqlReserva);
-            $stmtReserva->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmtReserva->execute();
-
-            $sqlVehiculo = "UPDATE vehiculos SET estado = 'disponible' WHERE id = :vehiculo_id";
-            $stmtVehiculo = $this->getConnection()->prepare($sqlVehiculo);
-            $stmtVehiculo->bindValue(':vehiculo_id', $reserva->getVehiculoId(), PDO::PARAM_INT);
-            $stmtVehiculo->execute();
-
-            $this->getConnection()->commit();
-
-            return true;
-        } catch (Throwable $e) {
-            if ($this->getConnection()->inTransaction()) {
-                $this->getConnection()->rollBack();
-            }
-
-            throw $e;
+            return $this->json($response, $reserva->toJson(), 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
         }
     }
 
-    public function delete(int $id): bool
+    public function completar(Request $request, Response $response, array $args): Response
     {
-        $sql = "DELETE FROM reservas WHERE id = :id";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        try {
+            $id = (int) $args['id'];
 
-        return $stmt->execute();
+            $controller = new ReservaController();
+            $reserva = $controller->completarReserva($id);
+
+            return $this->json($response, $reserva->toJson(), 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 
-    private function clienteExiste(int $clienteId): bool
+    public function cancelar(Request $request, Response $response, array $args): Response
     {
-        $sql = "SELECT COUNT(*) FROM clientes WHERE id = :id";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $clienteId, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $id = (int) $args['id'];
 
-        return (int) $stmt->fetchColumn() > 0;
+            $controller = new ReservaController();
+            $reserva = $controller->cancelarReserva($id);
+
+            return $this->json($response, $reserva->toJson(), 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 
-    private function obtenerVehiculo(int $vehiculoId): ?array
+    public function delete(Request $request, Response $response, array $args): Response
     {
-        $sql = "SELECT * FROM vehiculos WHERE id = :id LIMIT 1";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $vehiculoId, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $id = (int) $args['id'];
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $controller = new ReservaController();
+            $controller->borrarReserva($id);
 
-        return $row ?: null;
-    }
-
-    private function existeCruceDeReserva(int $vehiculoId, string $fechaInicio, string $fechaFin): bool
-    {
-        $sql = "SELECT COUNT(*)
-                FROM reservas
-                WHERE vehiculo_id = :vehiculo_id
-                  AND estado = 'activa'
-                  AND NOT (:fecha_fin < fecha_inicio OR :fecha_inicio > fecha_fin)";
-
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':vehiculo_id', $vehiculoId, PDO::PARAM_INT);
-        $stmt->bindValue(':fecha_inicio', $fechaInicio);
-        $stmt->bindValue(':fecha_fin', $fechaFin);
-        $stmt->execute();
-
-        return (int) $stmt->fetchColumn() > 0;
-    }
-
-    private function mapRowToReserva(array $row): Reserva
-    {
-        return new Reserva(
-            isset($row['id']) ? (int) $row['id'] : null,
-            (int) $row['cliente_id'],
-            (int) $row['vehiculo_id'],
-            $row['fecha_inicio'],
-            $row['fecha_fin'],
-            $row['estado'],
-            $row['created_at'] ?? null,
-            $row['updated_at'] ?? null
-        );
+            return $this->json($response, [
+                'message' => 'Reserva borrada correctamente'
+            ], 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 }

@@ -1,161 +1,181 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Controllers;
+namespace ALQUILERVEHICULOS\Controllers;
 
-use App\AlquilerVehiculos\Models\Reserva;
-use App\AlquilerVehiculos\Presentation\Repositories\ReservaRepository;
-use InvalidArgumentException;
-use RuntimeException;
-use Throwable;
+use ALQUILERVEHICULOS\Models\Reserva;
+use ALQUILERVEHICULOS\Models\Cliente;
+use ALQUILERVEHICULOS\Models\Vehiculo;
+use Exception;
 
-class ReservaController extends BaseController
+class ReservaController extends AbstractController
 {
-    private ReservaRepository $repository;
-
-    public function __construct()
+    public function getReservas()
     {
-        $this->repository = new ReservaRepository();
+        $rows = Reserva::with(['cliente', 'vehiculo'])->get();
+        return $rows->toJson();
     }
 
-    public function index(): void
+    public function getReserva(int $id): Reserva
     {
-        $reservas = $this->repository->findAll();
-        $data = array_map(
-            fn(Reserva $reserva) => $reserva->toArray(),
-            $reservas
+        $reserva = Reserva::with(['cliente', 'vehiculo'])->find($id);
+
+        if (empty($reserva)) {
+            throw new Exception("La reserva $id no existe", 1);
+        }
+
+        return $reserva;
+    }
+
+    public function guardarReserva(array $data)
+    {
+        $this->validarDatos($data);
+
+        $cliente = Cliente::find((int) $data['cliente_id']);
+        if (empty($cliente)) {
+            throw new Exception("El cliente {$data['cliente_id']} no existe", 1);
+        }
+
+        $vehiculo = Vehiculo::find((int) $data['vehiculo_id']);
+        if (empty($vehiculo)) {
+            throw new Exception("El vehículo {$data['vehiculo_id']} no existe", 1);
+        }
+
+        if (!$vehiculo->estaDisponible()) {
+            throw new Exception("El vehículo {$data['vehiculo_id']} no está disponible", 3);
+        }
+
+        $reserva = new Reserva();
+        $reserva->cliente_id = (int) $data['cliente_id'];
+        $reserva->vehiculo_id = (int) $data['vehiculo_id'];
+        $reserva->fecha_inicio = $data['fecha_inicio'];
+        $reserva->fecha_fin = $data['fecha_fin'];
+        $reserva->estado = $data['estado'] ?? 'activa';
+        $reserva->save();
+
+        $vehiculo->estado = 'alquilado';
+        $vehiculo->save();
+
+        return $reserva->fresh(['cliente', 'vehiculo'])->toJson();
+    }
+
+    public function modificarReserva(int $id, array $data): Reserva
+    {
+        $this->validarDatos($data, true);
+
+        $reserva = $this->getReserva($id);
+
+        $cliente = Cliente::find((int) $data['cliente_id']);
+        if (empty($cliente)) {
+            throw new Exception("El cliente {$data['cliente_id']} no existe", 1);
+        }
+
+        $vehiculo = Vehiculo::find((int) $data['vehiculo_id']);
+        if (empty($vehiculo)) {
+            throw new Exception("El vehículo {$data['vehiculo_id']} no existe", 1);
+        }
+
+        if ((int) $reserva->vehiculo_id !== (int) $data['vehiculo_id'] && !$vehiculo->estaDisponible()) {
+            throw new Exception("El vehículo {$data['vehiculo_id']} no está disponible", 3);
+        }
+
+        $vehiculoAnterior = Vehiculo::find((int) $reserva->vehiculo_id);
+
+        $reserva->cliente_id = (int) $data['cliente_id'];
+        $reserva->vehiculo_id = (int) $data['vehiculo_id'];
+        $reserva->fecha_inicio = $data['fecha_inicio'];
+        $reserva->fecha_fin = $data['fecha_fin'];
+        $reserva->estado = $data['estado'] ?? $reserva->estado;
+        $reserva->save();
+
+        if (!empty($vehiculoAnterior) && (int) $vehiculoAnterior->id !== (int) $vehiculo->id) {
+            $vehiculoAnterior->estado = 'disponible';
+            $vehiculoAnterior->save();
+        }
+
+        if ($reserva->estado === 'activa') {
+            $vehiculo->estado = 'alquilado';
+        } else {
+            $vehiculo->estado = 'disponible';
+        }
+        $vehiculo->save();
+
+        return $reserva->fresh(['cliente', 'vehiculo']);
+    }
+
+    public function completarReserva(int $id): Reserva
+    {
+        $reserva = $this->getReserva($id);
+
+        if ($reserva->estaCompletada()) {
+            throw new Exception("La reserva $id ya está completada", 2);
+        }
+
+        $reserva->estado = 'completada';
+        $reserva->save();
+
+        $vehiculo = Vehiculo::find((int) $reserva->vehiculo_id);
+        if (!empty($vehiculo)) {
+            $vehiculo->estado = 'disponible';
+            $vehiculo->save();
+        }
+
+        return $reserva->fresh(['cliente', 'vehiculo']);
+    }
+
+    public function cancelarReserva(int $id): Reserva
+    {
+        $reserva = $this->getReserva($id);
+
+        if ($reserva->estaCancelada()) {
+            throw new Exception("La reserva $id ya está cancelada", 2);
+        }
+
+        $reserva->estado = 'cancelada';
+        $reserva->save();
+
+        $vehiculo = Vehiculo::find((int) $reserva->vehiculo_id);
+        if (!empty($vehiculo)) {
+            $vehiculo->estado = 'disponible';
+            $vehiculo->save();
+        }
+
+        return $reserva->fresh(['cliente', 'vehiculo']);
+    }
+
+    public function borrarReserva(int $id): void
+    {
+        $reserva = $this->getReserva($id);
+        $vehiculoId = (int) $reserva->vehiculo_id;
+
+        $reserva->delete();
+
+        $vehiculo = Vehiculo::find($vehiculoId);
+        if (!empty($vehiculo)) {
+            $vehiculo->estado = 'disponible';
+            $vehiculo->save();
+        }
+    }
+
+    protected function validarDatos(array $data, bool $isUpdate = false): void
+    {
+        $this->validarRequerido($data, 'cliente_id', 'El cliente es obligatorio');
+        $this->validarRequerido($data, 'vehiculo_id', 'El vehículo es obligatorio');
+        $this->validarRequerido($data, 'fecha_inicio', 'La fecha de inicio es obligatoria');
+        $this->validarRequerido($data, 'fecha_fin', 'La fecha final es obligatoria');
+
+        $this->validarEnteroPositivo($data['cliente_id'], 'El id del cliente no es válido');
+        $this->validarEnteroPositivo($data['vehiculo_id'], 'El id del vehículo no es válido');
+
+        $this->validarFecha($data['fecha_inicio'], 'La fecha de inicio no es válida');
+        $this->validarFecha($data['fecha_fin'], 'La fecha final no es válida');
+        $this->validarRangoFechas($data['fecha_inicio'], $data['fecha_fin']);
+
+        $estado = $data['estado'] ?? 'activa';
+        $this->validarEnListado(
+            $estado,
+            ['activa', 'completada', 'cancelada'],
+            'El estado de la reserva no es válido'
         );
-
-        $this->successResponse($data);
-    }
-
-    public function show(int $id): void
-    {
-        $reserva = $this->repository->findById($id);
-
-        if (!$reserva instanceof Reserva) {
-            $this->errorResponse('Reserva no encontrada.', 404);
-            return;
-        }
-
-        $this->successResponse($reserva->toArray());
-    }
-
-    public function store(): void
-    {
-        try {
-            $data = $this->getJsonInput();
-
-            $reserva = Reserva::create(
-                (int) ($data['cliente_id'] ?? 0),
-                (int) ($data['vehiculo_id'] ?? 0),
-                $data['fecha_inicio'] ?? '',
-                $data['fecha_fin'] ?? ''
-            );
-
-            $reservaCreada = $this->repository->create($reserva);
-
-            $this->successResponse($reservaCreada->toArray(), 201);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al crear la reserva.', 500);
-        }
-    }
-
-    public function update(int $id): void
-    {
-        try {
-            $reservaActual = $this->repository->findById($id);
-
-            if (!$reservaActual instanceof Reserva) {
-                $this->errorResponse('Reserva no encontrada.', 404);
-                return;
-            }
-
-            $data = $this->getJsonInput();
-
-            $reservaActual->updatePeriodo(
-                (int) ($data['cliente_id'] ?? 0),
-                (int) ($data['vehiculo_id'] ?? 0),
-                $data['fecha_inicio'] ?? '',
-                $data['fecha_fin'] ?? '',
-                $data['estado'] ?? 'activa'
-            );
-
-            $this->repository->update($id, $reservaActual);
-
-            $this->successResponse([
-                'message' => 'Reserva actualizada correctamente.'
-            ]);
-        } catch (InvalidArgumentException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al actualizar la reserva.', 500);
-        }
-    }
-
-    public function completar(int $id): void
-    {
-        try {
-            $reserva = $this->repository->findById($id);
-
-            if (!$reserva instanceof Reserva) {
-                $this->errorResponse('Reserva no encontrada.', 404);
-                return;
-            }
-
-            $this->repository->completar($id);
-
-            $this->successResponse([
-                'message' => 'Reserva completada correctamente.'
-            ]);
-        } catch (RuntimeException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al completar la reserva.', 500);
-        }
-    }
-
-    public function cancelar(int $id): void
-    {
-        try {
-            $reserva = $this->repository->findById($id);
-
-            if (!$reserva instanceof Reserva) {
-                $this->errorResponse('Reserva no encontrada.', 404);
-                return;
-            }
-
-            $this->repository->cancelar($id);
-
-            $this->successResponse([
-                'message' => 'Reserva cancelada correctamente.'
-            ]);
-        } catch (RuntimeException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al cancelar la reserva.', 500);
-        }
-    }
-
-    public function destroy(int $id): void
-    {
-        try {
-            $reserva = $this->repository->findById($id);
-
-            if (!$reserva instanceof Reserva) {
-                $this->errorResponse('Reserva no encontrada.', 404);
-                return;
-            }
-
-            $this->repository->delete($id);
-
-            $this->successResponse([
-                'message' => 'Reserva eliminada correctamente.'
-            ]);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al eliminar la reserva.', 500);
-        }
     }
 }

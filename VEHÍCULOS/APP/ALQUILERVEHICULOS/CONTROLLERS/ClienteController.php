@@ -1,115 +1,69 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Controllers;
+namespace ALQUILERVEHICULOS\Controllers;
 
-use App\AlquilerVehiculos\Models\Cliente;
-use App\AlquilerVehiculos\Presentation\Repositories\ClienteRepository;
-use InvalidArgumentException;
-use Throwable;
+use ALQUILERVEHICULOS\Models\Cliente;
+use Exception;
 
-class ClienteController extends BaseController
+class ClienteController extends AbstractController
 {
-    private ClienteRepository $repository;
-
-    public function __construct()
+    public function getClientes()
     {
-        $this->repository = new ClienteRepository();
+        $rows = Cliente::all();
+        return $rows->toJson();
     }
 
-    public function index(): void
+    public function guardarCliente(array $data)
     {
-        $clientes = $this->repository->findAll();
-        $data = array_map(
-            fn(Cliente $cliente) => $cliente->toArray(),
-            $clientes
-        );
+        $this->validarDatos($data);
 
-        $this->successResponse($data);
+        $cliente = new Cliente();
+        $cliente->nombre = trim($data['nombre']);
+        $cliente->telefono = $this->limpiarTexto($data['telefono'] ?? null);
+        $cliente->correo = $this->limpiarTexto($data['correo'] ?? null);
+        $cliente->numero_licencia = $this->limpiarTexto($data['numero_licencia'] ?? null);
+        $cliente->save();
+
+        return $cliente->toJson();
     }
 
-    public function show(int $id): void
+    public function getCliente(int $id): Cliente
     {
-        $cliente = $this->repository->findById($id);
+        $cliente = Cliente::find($id);
 
-        if (!$cliente instanceof Cliente) {
-            $this->errorResponse('Cliente no encontrado.', 404);
-            return;
+        if (empty($cliente)) {
+            throw new Exception("El cliente $id no existe", 1);
         }
 
-        $this->successResponse($cliente->toArray());
+        return $cliente;
     }
 
-    public function store(): void
+    public function modificarCliente(int $id, array $data): Cliente
     {
-        try {
-            $data = $this->getJsonInput();
+        $this->validarDatos($data, true);
 
-            $cliente = Cliente::create(
-                $data['nombre'] ?? '',
-                $data['telefono'] ?? null,
-                $data['correo'] ?? null,
-                $data['numero_licencia'] ?? null
-            );
+        $cliente = $this->getCliente($id);
+        $cliente->nombre = trim($data['nombre']);
+        $cliente->telefono = $this->limpiarTexto($data['telefono'] ?? null);
+        $cliente->correo = $this->limpiarTexto($data['correo'] ?? null);
+        $cliente->numero_licencia = $this->limpiarTexto($data['numero_licencia'] ?? null);
+        $cliente->save();
 
-            $clienteCreado = $this->repository->create($cliente);
-
-            $this->successResponse($clienteCreado->toArray(), 201);
-        } catch (InvalidArgumentException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al crear el cliente.', 500);
-        }
+        return $cliente;
     }
 
-    public function update(int $id): void
+    public function borrarCliente(int $id): void
     {
-        try {
-            $clienteActual = $this->repository->findById($id);
-
-            if (!$clienteActual instanceof Cliente) {
-                $this->errorResponse('Cliente no encontrado.', 404);
-                return;
-            }
-
-            $data = $this->getJsonInput();
-
-            $clienteActual->updateData(
-                $data['nombre'] ?? '',
-                $data['telefono'] ?? null,
-                $data['correo'] ?? null,
-                $data['numero_licencia'] ?? null
-            );
-
-            $this->repository->update($id, $clienteActual);
-
-            $this->successResponse([
-                'message' => 'Cliente actualizado correctamente.'
-            ]);
-        } catch (InvalidArgumentException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al actualizar el cliente.', 500);
-        }
+        $cliente = $this->getCliente($id);
+        $cliente->delete();
     }
 
-    public function destroy(int $id): void
+    protected function validarDatos(array $data, bool $isUpdate = false): void
     {
-        try {
-            $cliente = $this->repository->findById($id);
+        $this->validarRequerido($data, 'nombre', 'El nombre del cliente es obligatorio');
 
-            if (!$cliente instanceof Cliente) {
-                $this->errorResponse('Cliente no encontrado.', 404);
-                return;
-            }
-
-            $this->repository->delete($id);
-
-            $this->successResponse([
-                'message' => 'Cliente eliminado correctamente.'
-            ]);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al eliminar el cliente.', 500);
-        }
+        $correo = $this->limpiarTexto($data['correo'] ?? null);
+        $this->validarEmailOpcional($correo);
     }
 }

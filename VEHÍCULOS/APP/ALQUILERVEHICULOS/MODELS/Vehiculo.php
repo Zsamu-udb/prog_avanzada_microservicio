@@ -1,161 +1,55 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Models;
+namespace ALQUILERVEHICULOS\Models;
 
-use InvalidArgumentException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use ALQUILERVEHICULOS\Models\Reserva;
 
-class Vehiculo extends AbstractModel
+class Vehiculo extends Model
 {
-    private const ESTADOS_VALIDOS = ['disponible', 'alquilado', 'mantenimiento'];
+    protected $table = 'vehiculos';
 
-    private string $marca;
-    private string $modelo;
-    private int $anio;
-    private ?string $categoria;
-    private string $estado;
+    protected $primaryKey = 'id';
 
-    public function __construct(
-        ?int $id,
-        string $marca,
-        string $modelo,
-        int $anio,
-        ?string $categoria = null,
-        string $estado = 'disponible',
-        ?string $createdAt = null,
-        ?string $updatedAt = null
-    ) {
-        parent::__construct($id, $createdAt, $updatedAt);
+    public $timestamps = true;
 
-        $this->setMarca($marca);
-        $this->setModelo($modelo);
-        $this->setAnio($anio);
-        $this->setCategoria($categoria);
-        $this->setEstado($estado);
-    }
+    protected $fillable = [
+        'marca',
+        'modelo',
+        'anio',
+        'categoria',
+        'estado'
+    ];
 
-    public static function create(
-        string $marca,
-        string $modelo,
-        int $anio,
-        ?string $categoria = null,
-        string $estado = 'disponible'
-    ): self {
-        return new self(
-            null,
-            $marca,
-            $modelo,
-            $anio,
-            $categoria,
-            $estado
-        );
-    }
+    protected $attributes = [
+        'categoria' => null,
+        'estado' => 'disponible'
+    ];
 
-    public function updateData(
-        string $marca,
-        string $modelo,
-        int $anio,
-        ?string $categoria = null,
-        string $estado = 'disponible'
-    ): void {
-        $this->setMarca($marca);
-        $this->setModelo($modelo);
-        $this->setAnio($anio);
-        $this->setCategoria($categoria);
-        $this->setEstado($estado);
-    }
-
-    public function cambiarEstado(string $estado): void
+    public function reservas(): HasMany
     {
-        $this->setEstado($estado);
+        return $this->hasMany(Reserva::class, 'vehiculo_id', 'id');
     }
 
-    public function getMarca(): string
+    public function estaDisponible(): bool
     {
-        return $this->marca;
+        return $this->estado === 'disponible';
     }
 
-    public function getModelo(): string
+    public function estaAlquilado(): bool
     {
-        return $this->modelo;
+        return $this->estado === 'alquilado';
     }
 
-    public function getAnio(): int
+    public function estaEnMantenimiento(): bool
     {
-        return $this->anio;
+        return $this->estado === 'mantenimiento';
     }
 
-    public function getCategoria(): ?string
+    public function nombreCompleto(): string
     {
-        return $this->categoria;
-    }
-
-    public function getEstado(): string
-    {
-        return $this->estado;
-    }
-
-    private function setMarca(string $marca): void
-    {
-        $marca = trim($marca);
-
-        if ($marca === '') {
-            throw new InvalidArgumentException('La marca del vehículo es obligatoria.');
-        }
-
-        $this->marca = $marca;
-    }
-
-    private function setModelo(string $modelo): void
-    {
-        $modelo = trim($modelo);
-
-        if ($modelo === '') {
-            throw new InvalidArgumentException('El modelo del vehículo es obligatorio.');
-        }
-
-        $this->modelo = $modelo;
-    }
-
-    private function setAnio(int $anio): void
-    {
-        $currentYear = (int) date('Y') + 1;
-
-        if ($anio < 1900 || $anio > $currentYear) {
-            throw new InvalidArgumentException('El año del vehículo no es válido.');
-        }
-
-        $this->anio = $anio;
-    }
-
-    private function setCategoria(?string $categoria): void
-    {
-        $categoria = $categoria !== null ? trim($categoria) : null;
-        $this->categoria = $categoria !== '' ? $categoria : null;
-    }
-
-    private function setEstado(string $estado): void
-    {
-        $estado = strtolower(trim($estado));
-
-        if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
-            throw new InvalidArgumentException('El estado del vehículo no es válido.');
-        }
-
-        $this->estado = $estado;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->getId(),
-            'marca' => $this->marca,
-            'modelo' => $this->modelo,
-            'anio' => $this->anio,
-            'categoria' => $this->categoria,
-            'estado' => $this->estado,
-            'created_at' => $this->getCreatedAt(),
-            'updated_at' => $this->getUpdatedAt()
-        ];
+        return trim((string) $this->marca . ' ' . $this->modelo);
     }
 }

@@ -1,129 +1,50 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Models;
+namespace ALQUILERVEHICULOS\Models;
 
-use InvalidArgumentException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use ALQUILERVEHICULOS\Models\Reserva;
 
-class Cliente extends AbstractModel
+class Cliente extends Model
 {
-    private string $nombre;
-    private ?string $telefono;
-    private ?string $correo;
-    private ?string $numeroLicencia;
+    protected $table = 'clientes';
 
-    public function __construct(
-        ?int $id,
-        string $nombre,
-        ?string $telefono = null,
-        ?string $correo = null,
-        ?string $numeroLicencia = null,
-        ?string $createdAt = null,
-        ?string $updatedAt = null
-    ) {
-        parent::__construct($id, $createdAt, $updatedAt);
+    protected $primaryKey = 'id';
 
-        $this->setNombre($nombre);
-        $this->setTelefono($telefono);
-        $this->setCorreo($correo);
-        $this->setNumeroLicencia($numeroLicencia);
-    }
+    public $timestamps = true;
 
-    public static function create(
-        string $nombre,
-        ?string $telefono = null,
-        ?string $correo = null,
-        ?string $numeroLicencia = null
-    ): self {
-        return new self(
-            null,
-            $nombre,
-            $telefono,
-            $correo,
-            $numeroLicencia
-        );
-    }
+    protected $fillable = [
+        'nombre',
+        'telefono',
+        'correo',
+        'numero_licencia'
+    ];
 
-    public function updateData(
-        string $nombre,
-        ?string $telefono = null,
-        ?string $correo = null,
-        ?string $numeroLicencia = null
-    ): void {
-        $this->setNombre($nombre);
-        $this->setTelefono($telefono);
-        $this->setCorreo($correo);
-        $this->setNumeroLicencia($numeroLicencia);
-    }
+    protected $attributes = [
+        'telefono' => null,
+        'correo' => null,
+        'numero_licencia' => null
+    ];
 
-    public function getNombre(): string
+    public function reservas(): HasMany
     {
-        return $this->nombre;
+        return $this->hasMany(Reserva::class, 'cliente_id', 'id');
     }
 
-    public function getTelefono(): ?string
+    public function tieneCorreo(): bool
     {
-        return $this->telefono;
+        return !empty($this->correo);
     }
 
-    public function getCorreo(): ?string
+    public function tieneLicencia(): bool
     {
-        return $this->correo;
+        return !empty($this->numero_licencia);
     }
 
-    public function getNumeroLicencia(): ?string
+    public function nombreFormateado(): string
     {
-        return $this->numeroLicencia;
-    }
-
-    private function setNombre(string $nombre): void
-    {
-        $nombre = trim($nombre);
-
-        if ($nombre === '') {
-            throw new InvalidArgumentException('El nombre del cliente es obligatorio.');
-        }
-
-        $this->nombre = $nombre;
-    }
-
-    private function setTelefono(?string $telefono): void
-    {
-        $telefono = $telefono !== null ? trim($telefono) : null;
-        $this->telefono = $telefono !== '' ? $telefono : null;
-    }
-
-    private function setCorreo(?string $correo): void
-    {
-        $correo = $correo !== null ? trim($correo) : null;
-
-        if ($correo === '') {
-            $correo = null;
-        }
-
-        if ($correo !== null && !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidArgumentException('El correo del cliente no es válido.');
-        }
-
-        $this->correo = $correo;
-    }
-
-    private function setNumeroLicencia(?string $numeroLicencia): void
-    {
-        $numeroLicencia = $numeroLicencia !== null ? trim($numeroLicencia) : null;
-        $this->numeroLicencia = $numeroLicencia !== '' ? $numeroLicencia : null;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->getId(),
-            'nombre' => $this->nombre,
-            'telefono' => $this->telefono,
-            'correo' => $this->correo,
-            'numero_licencia' => $this->numeroLicencia,
-            'created_at' => $this->getCreatedAt(),
-            'updated_at' => $this->getUpdatedAt()
-        ];
+        return trim((string) $this->nombre);
     }
 }

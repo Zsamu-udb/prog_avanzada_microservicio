@@ -1,153 +1,102 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Controllers;
+namespace ALQUILERVEHICULOS\Controllers;
 
-use App\AlquilerVehiculos\Models\Vehiculo;
-use App\AlquilerVehiculos\Presentation\Repositories\VehiculoRepository;
-use InvalidArgumentException;
-use Throwable;
+use ALQUILERVEHICULOS\Models\Vehiculo;
+use Exception;
 
-class VehiculoController extends BaseController
+class VehiculoController extends AbstractController
 {
-    private VehiculoRepository $repository;
-
-    public function __construct()
+    public function getVehiculos()
     {
-        $this->repository = new VehiculoRepository();
+        $rows = Vehiculo::all();
+        return $rows->toJson();
     }
 
-    public function index(): void
+    public function getVehiculosDisponibles()
     {
-        $vehiculos = $this->repository->findAll();
-        $data = array_map(
-            fn(Vehiculo $vehiculo) => $vehiculo->toArray(),
-            $vehiculos
+        $rows = Vehiculo::where('estado', 'disponible')->get();
+        return $rows->toJson();
+    }
+
+    public function getVehiculo(int $id): Vehiculo
+    {
+        $vehiculo = Vehiculo::find($id);
+
+        if (empty($vehiculo)) {
+            throw new Exception("El vehículo $id no existe", 1);
+        }
+
+        return $vehiculo;
+    }
+
+    public function guardarVehiculo(array $data)
+    {
+        $this->validarDatos($data);
+
+        $vehiculo = new Vehiculo();
+        $vehiculo->marca = trim($data['marca']);
+        $vehiculo->modelo = trim($data['modelo']);
+        $vehiculo->anio = (int) $data['anio'];
+        $vehiculo->categoria = $this->limpiarTexto($data['categoria'] ?? null);
+        $vehiculo->estado = $data['estado'] ?? 'disponible';
+        $vehiculo->save();
+
+        return $vehiculo->toJson();
+    }
+
+    public function modificarVehiculo(int $id, array $data): Vehiculo
+    {
+        $this->validarDatos($data, true);
+
+        $vehiculo = $this->getVehiculo($id);
+        $vehiculo->marca = trim($data['marca']);
+        $vehiculo->modelo = trim($data['modelo']);
+        $vehiculo->anio = (int) $data['anio'];
+        $vehiculo->categoria = $this->limpiarTexto($data['categoria'] ?? null);
+        $vehiculo->estado = $data['estado'] ?? $vehiculo->estado;
+        $vehiculo->save();
+
+        return $vehiculo;
+    }
+
+    public function cambiarEstadoVehiculo(int $id, array $data): Vehiculo
+    {
+        $vehiculo = $this->getVehiculo($id);
+
+        $estado = $data['estado'] ?? null;
+        $this->validarEnListado(
+            $estado,
+            ['disponible', 'alquilado', 'mantenimiento'],
+            'El estado del vehículo no es válido'
         );
 
-        $this->successResponse($data);
+        $vehiculo->estado = $estado;
+        $vehiculo->save();
+
+        return $vehiculo;
     }
 
-    public function disponibles(): void
+    public function borrarVehiculo(int $id): void
     {
-        $vehiculos = $this->repository->findDisponibles();
-        $data = array_map(
-            fn(Vehiculo $vehiculo) => $vehiculo->toArray(),
-            $vehiculos
+        $vehiculo = $this->getVehiculo($id);
+        $vehiculo->delete();
+    }
+
+    protected function validarDatos(array $data, bool $isUpdate = false): void
+    {
+        $this->validarRequerido($data, 'marca', 'La marca es obligatoria');
+        $this->validarRequerido($data, 'modelo', 'El modelo es obligatorio');
+        $this->validarRequerido($data, 'anio', 'El año es obligatorio');
+
+        $this->validarEnteroPositivo($data['anio'], 'El año del vehículo debe ser un número válido');
+
+        $estado = $data['estado'] ?? 'disponible';
+        $this->validarEnListado(
+            $estado,
+            ['disponible', 'alquilado', 'mantenimiento'],
+            'El estado del vehículo no es válido'
         );
-
-        $this->successResponse($data);
-    }
-
-    public function show(int $id): void
-    {
-        $vehiculo = $this->repository->findById($id);
-
-        if (!$vehiculo instanceof Vehiculo) {
-            $this->errorResponse('Vehículo no encontrado.', 404);
-            return;
-        }
-
-        $this->successResponse($vehiculo->toArray());
-    }
-
-    public function store(): void
-    {
-        try {
-            $data = $this->getJsonInput();
-
-            $vehiculo = Vehiculo::create(
-                $data['marca'] ?? '',
-                $data['modelo'] ?? '',
-                (int) ($data['anio'] ?? 0),
-                $data['categoria'] ?? null,
-                $data['estado'] ?? 'disponible'
-            );
-
-            $vehiculoCreado = $this->repository->create($vehiculo);
-
-            $this->successResponse($vehiculoCreado->toArray(), 201);
-        } catch (InvalidArgumentException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al crear el vehículo.', 500);
-        }
-    }
-
-    public function update(int $id): void
-    {
-        try {
-            $vehiculoActual = $this->repository->findById($id);
-
-            if (!$vehiculoActual instanceof Vehiculo) {
-                $this->errorResponse('Vehículo no encontrado.', 404);
-                return;
-            }
-
-            $data = $this->getJsonInput();
-
-            $vehiculoActual->updateData(
-                $data['marca'] ?? '',
-                $data['modelo'] ?? '',
-                (int) ($data['anio'] ?? 0),
-                $data['categoria'] ?? null,
-                $data['estado'] ?? 'disponible'
-            );
-
-            $this->repository->update($id, $vehiculoActual);
-
-            $this->successResponse([
-                'message' => 'Vehículo actualizado correctamente.'
-            ]);
-        } catch (InvalidArgumentException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al actualizar el vehículo.', 500);
-        }
-    }
-
-    public function updateEstado(int $id): void
-    {
-        try {
-            $vehiculoActual = $this->repository->findById($id);
-
-            if (!$vehiculoActual instanceof Vehiculo) {
-                $this->errorResponse('Vehículo no encontrado.', 404);
-                return;
-            }
-
-            $data = $this->getJsonInput();
-            $vehiculoActual->cambiarEstado($data['estado'] ?? '');
-
-            $this->repository->updateEstado($id, $vehiculoActual->getEstado());
-
-            $this->successResponse([
-                'message' => 'Estado del vehículo actualizado correctamente.'
-            ]);
-        } catch (InvalidArgumentException $e) {
-            $this->errorResponse($e->getMessage(), 400);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al actualizar el estado del vehículo.', 500);
-        }
-    }
-
-    public function destroy(int $id): void
-    {
-        try {
-            $vehiculo = $this->repository->findById($id);
-
-            if (!$vehiculo instanceof Vehiculo) {
-                $this->errorResponse('Vehículo no encontrado.', 404);
-                return;
-            }
-
-            $this->repository->delete($id);
-
-            $this->successResponse([
-                'message' => 'Vehículo eliminado correctamente.'
-            ]);
-        } catch (Throwable $e) {
-            $this->errorResponse('Error al eliminar el vehículo.', 500);
-        }
     }
 }

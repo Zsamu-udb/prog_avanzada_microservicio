@@ -1,132 +1,135 @@
-### Hola mundo
-GET http://127.0.0.1:8000
+@baseUrl = http://127.0.0.1:8000
+### Probar API
+GET {{baseUrl}}/
 
-### TEST
-GET http://127.0.0.1:8000/test
+### =========================
+### CLIENTES
+### =========================
 
-### CLIENTES #####################################
+### Consultar todos los clientes
+GET {{baseUrl}}/clientes
 
-### consultar todos los clientes
-GET http://127.0.0.1:8000/clientes
+### Consultar cliente por id
+GET {{baseUrl}}/clientes/1
 
-### consultar cliente
-GET http://127.0.0.1:8000/clientes/1
-
-### crear cliente
-POST http://127.0.0.1:8000/clientes
+### Crear cliente
+POST {{baseUrl}}/clientes
 Content-Type: application/json
 
 {
-    "nombre": "Samuel Rojas",
-    "telefono": "3101234567",
-    "correo": "samuel@test.com",
-    "numero_licencia": "LIC-001"
+  "nombre": "Carlos Ramírez",
+  "telefono": "3201234567",
+  "correo": "carlos.ramirez@test.com",
+  "numero_licencia": "LIC123456"
 }
 
-### modificar cliente
-PUT http://127.0.0.1:8000/clientes/1
+### Modificar cliente
+PUT {{baseUrl}}/clientes/1
 Content-Type: application/json
 
 {
-    "nombre": "Samuel Andres Rojas",
-    "telefono": "3109999999",
-    "correo": "samuelandres@test.com",
-    "numero_licencia": "LIC-009"
+  "nombre": "Carlos Ramírez Actualizado",
+  "telefono": "3209998888",
+  "correo": "carlos.actualizado@test.com",
+  "numero_licencia": "LIC999888"
 }
 
-### borrar cliente
-DELETE http://127.0.0.1:8000/clientes/1
+### Borrar cliente
+DELETE {{baseUrl}}/clientes/2
 
-### VEHICULOS ####################################
+### =========================
+### VEHICULOS
+### =========================
 
-### consultar todos los vehiculos
-GET http://127.0.0.1:8000/vehiculos
+### Consultar todos los vehículos
+GET {{baseUrl}}/vehiculos
 
-### consultar vehiculos disponibles
-GET http://127.0.0.1:8000/vehiculos/disponibles
+### Consultar vehículos disponibles
+GET {{baseUrl}}/vehiculos/disponibles
 
-### consultar vehiculo
-GET http://127.0.0.1:8000/vehiculos/1
+### Consultar vehículo por id
+GET {{baseUrl}}/vehiculos/1
 
-### crear vehiculo
-POST http://127.0.0.1:8000/vehiculos
+### Crear vehículo
+POST {{baseUrl}}/vehiculos
 Content-Type: application/json
 
 {
-    "marca": "Toyota",
-    "modelo": "Corolla",
-    "anio": 2022,
-    "categoria": "Sedan",
-    "estado": "disponible"
+  "marca": "Toyota",
+  "modelo": "Corolla",
+  "anio": 2022,
+  "categoria": "Sedan",
+  "estado": "disponible"
 }
 
-### modificar vehiculo
-PUT http://127.0.0.1:8000/vehiculos/1
+### Modificar vehículo
+PUT {{baseUrl}}/vehiculos/1
 Content-Type: application/json
 
 {
-    "marca": "Mazda",
-    "modelo": "CX-5",
-    "anio": 2023,
-    "categoria": "SUV",
-    "estado": "disponible"
+  "marca": "Toyota",
+  "modelo": "Corolla Cross",
+  "anio": 2023,
+  "categoria": "SUV",
+  "estado": "disponible"
 }
 
-### cambiar estado vehiculo
-PUT http://127.0.0.1:8000/vehiculos/1/estado
+### Cambiar estado de vehículo
+PATCH {{baseUrl}}/vehiculos/1/estado
 Content-Type: application/json
 
 {
-    "estado": "mantenimiento"
+  "estado": "mantenimiento"
 }
 
-### borrar vehiculo
-DELETE http://127.0.0.1:8000/vehiculos/1
+### Borrar vehículo
+DELETE {{baseUrl}}/vehiculos/2
 
-### RESERVAS #####################################
+### =========================
+### RESERVAS
+### =========================
 
-### consultar todas las reservas
-GET http://127.0.0.1:8000/reservas
+### Consultar todas las reservas
+GET {{baseUrl}}/reservas
 
-### consultar reserva
-GET http://127.0.0.1:8000/reservas/1
+### Consultar reserva por id
+GET {{baseUrl}}/reservas/1
 
-### crear reserva
-POST http://127.0.0.1:8000/reservas
+### Crear reserva
+POST {{baseUrl}}/reservas
 Content-Type: application/json
 
 {
-    "cliente_id": 1,
-    "vehiculo_id": 1,
-    "fecha_inicio": "2026-05-20",
-    "fecha_fin": "2026-05-25"
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2026-05-21",
+  "fecha_fin": "2026-05-25",
+  "estado": "activa"
 }
 
-### modificar reserva
-PUT http://127.0.0.1:8000/reservas/1
+### Modificar reserva
+PUT {{baseUrl}}/reservas/1
 Content-Type: application/json
 
 {
-    "cliente_id": 1,
-    "vehiculo_id": 1,
-    "fecha_inicio": "2026-05-21",
-    "fecha_fin": "2026-05-26",
-    "estado": "activa"
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2026-05-22",
+  "fecha_fin": "2026-05-27",
+  "estado": "activa"
 }
 
-### completar reserva
-PUT http://127.0.0.1:8000/reservas/1/completar
+### Completar reserva
+PATCH {{baseUrl}}/reservas/1/completar
 Content-Type: application/json
 
-{
-}
+{}
 
-### cancelar reserva
-PUT http://127.0.0.1:8000/reservas/1/cancelar
+### Cancelar reserva
+PATCH {{baseUrl}}/reservas/1/cancelar
 Content-Type: application/json
 
-{
-}
+{}
 
-### borrar reserva
-DELETE http://127.0.0.1:8000/reservas/1
+### Borrar reserva
+DELETE {{baseUrl}}/reservas/2

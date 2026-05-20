@@ -1,95 +1,79 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Presentation\Repositories;
+namespace ALQUILERVEHICULOS\Presentation\Repositories;
 
-use App\AlquilerVehiculos\Models\Cliente;
-use App\AlquilerVehiculos\Presentation\Repositories\Contracts\RepositoryInterface;
-use PDO;
+use ALQUILERVEHICULOS\Controllers\ClienteController;
+use Exception;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
-class ClienteRepository extends BaseRepository implements RepositoryInterface
+class ClienteRepository extends AbstractRepository
 {
-    public function findAll(): array
+    public function all(Request $request, Response $response): Response
     {
-        $sql = "SELECT * FROM clientes ORDER BY id DESC";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute();
+        $controller = new ClienteController();
+        $clientes = $controller->getClientes();
 
-        $clientes = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $clientes[] = $this->mapRowToCliente($row);
+        return $this->json($response, $clientes);
+    }
+
+    public function create(Request $request, Response $response): Response
+    {
+        try {
+            $data = $this->obtenerDatos($request);
+
+            $controller = new ClienteController();
+            $cliente = $controller->guardarCliente($data);
+
+            return $this->json($response, $cliente, 201);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
         }
-
-        return $clientes;
     }
 
-    public function findById(int $id): ?object
+    public function detail(Request $request, Response $response, array $args): Response
     {
-        $sql = "SELECT * FROM clientes WHERE id = :id LIMIT 1";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $id = (int) $args['id'];
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $controller = new ClienteController();
+            $cliente = $controller->getCliente($id);
 
-        return $row ? $this->mapRowToCliente($row) : null;
+            return $this->json($response, $cliente->toJson());
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 
-    public function create(Cliente $cliente): Cliente
+    public function update(Request $request, Response $response, array $args): Response
     {
-        $sql = "INSERT INTO clientes (nombre, telefono, correo, numero_licencia)
-                VALUES (:nombre, :telefono, :correo, :numero_licencia)";
+        try {
+            $id = (int) $args['id'];
+            $data = $this->obtenerDatos($request);
 
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':nombre', $cliente->getNombre());
-        $stmt->bindValue(':telefono', $cliente->getTelefono());
-        $stmt->bindValue(':correo', $cliente->getCorreo());
-        $stmt->bindValue(':numero_licencia', $cliente->getNumeroLicencia());
-        $stmt->execute();
+            $controller = new ClienteController();
+            $cliente = $controller->modificarCliente($id, $data);
 
-        $cliente->setId((int) $this->getConnection()->lastInsertId());
-
-        return $cliente;
+            return $this->json($response, $cliente->toJson(), 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 
-    public function update(int $id, Cliente $cliente): bool
+    public function delete(Request $request, Response $response, array $args): Response
     {
-        $sql = "UPDATE clientes
-                SET nombre = :nombre,
-                    telefono = :telefono,
-                    correo = :correo,
-                    numero_licencia = :numero_licencia
-                WHERE id = :id";
+        try {
+            $id = (int) $args['id'];
 
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->bindValue(':nombre', $cliente->getNombre());
-        $stmt->bindValue(':telefono', $cliente->getTelefono());
-        $stmt->bindValue(':correo', $cliente->getCorreo());
-        $stmt->bindValue(':numero_licencia', $cliente->getNumeroLicencia());
+            $controller = new ClienteController();
+            $controller->borrarCliente($id);
 
-        return $stmt->execute();
-    }
-
-    public function delete(int $id): bool
-    {
-        $sql = "DELETE FROM clientes WHERE id = :id";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
-
-    private function mapRowToCliente(array $row): Cliente
-    {
-        return new Cliente(
-            isset($row['id']) ? (int) $row['id'] : null,
-            $row['nombre'],
-            $row['telefono'] ?? null,
-            $row['correo'] ?? null,
-            $row['numero_licencia'] ?? null,
-            $row['created_at'] ?? null,
-            $row['updated_at'] ?? null
-        );
+            return $this->json($response, [
+                'message' => 'Cliente borrado correctamente'
+            ], 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 }

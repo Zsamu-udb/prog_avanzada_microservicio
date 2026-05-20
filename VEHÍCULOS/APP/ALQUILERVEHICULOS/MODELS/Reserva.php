@@ -1,174 +1,60 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Models;
+namespace ALQUILERVEHICULOS\Models;
 
-use DateTime;
-use InvalidArgumentException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use ALQUILERVEHICULOS\Models\Cliente;
+use ALQUILERVEHICULOS\Models\Vehiculo;
 
-class Reserva extends AbstractModel
+class Reserva extends Model
 {
-    private const ESTADOS_VALIDOS = ['activa', 'completada', 'cancelada'];
+    protected $table = 'reservas';
 
-    private int $clienteId;
-    private int $vehiculoId;
-    private string $fechaInicio;
-    private string $fechaFin;
-    private string $estado;
+    protected $primaryKey = 'id';
 
-    public function __construct(
-        ?int $id,
-        int $clienteId,
-        int $vehiculoId,
-        string $fechaInicio,
-        string $fechaFin,
-        string $estado = 'activa',
-        ?string $createdAt = null,
-        ?string $updatedAt = null
-    ) {
-        parent::__construct($id, $createdAt, $updatedAt);
+    public $timestamps = true;
 
-        $this->setClienteId($clienteId);
-        $this->setVehiculoId($vehiculoId);
-        $this->setFechaInicio($fechaInicio);
-        $this->setFechaFin($fechaFin);
-        $this->setEstado($estado);
-        $this->validateDateRange();
-    }
+    protected $fillable = [
+        'cliente_id',
+        'vehiculo_id',
+        'fecha_inicio',
+        'fecha_fin',
+        'estado'
+    ];
 
-    public static function create(
-        int $clienteId,
-        int $vehiculoId,
-        string $fechaInicio,
-        string $fechaFin
-    ): self {
-        return new self(
-            null,
-            $clienteId,
-            $vehiculoId,
-            $fechaInicio,
-            $fechaFin
-        );
-    }
+    protected $attributes = [
+        'estado' => 'activa'
+    ];
 
-    public function updatePeriodo(
-        int $clienteId,
-        int $vehiculoId,
-        string $fechaInicio,
-        string $fechaFin,
-        string $estado
-    ): void {
-        $this->setClienteId($clienteId);
-        $this->setVehiculoId($vehiculoId);
-        $this->setFechaInicio($fechaInicio);
-        $this->setFechaFin($fechaFin);
-        $this->setEstado($estado);
-        $this->validateDateRange();
-    }
-
-    public function completar(): void
+    public function cliente(): BelongsTo
     {
-        $this->estado = 'completada';
+        return $this->belongsTo(Cliente::class, 'cliente_id', 'id');
     }
 
-    public function cancelar(): void
+    public function vehiculo(): BelongsTo
     {
-        $this->estado = 'cancelada';
+        return $this->belongsTo(Vehiculo::class, 'vehiculo_id', 'id');
     }
 
-    public function getClienteId(): int
+    public function estaActiva(): bool
     {
-        return $this->clienteId;
+        return $this->estado === 'activa';
     }
 
-    public function getVehiculoId(): int
+    public function estaCompletada(): bool
     {
-        return $this->vehiculoId;
+        return $this->estado === 'completada';
     }
 
-    public function getFechaInicio(): string
+    public function estaCancelada(): bool
     {
-        return $this->fechaInicio;
+        return $this->estado === 'cancelada';
     }
 
-    public function getFechaFin(): string
+    public function rangoFechas(): string
     {
-        return $this->fechaFin;
-    }
-
-    public function getEstado(): string
-    {
-        return $this->estado;
-    }
-
-    private function setClienteId(int $clienteId): void
-    {
-        if ($clienteId <= 0) {
-            throw new InvalidArgumentException('El cliente_id debe ser mayor que cero.');
-        }
-
-        $this->clienteId = $clienteId;
-    }
-
-    private function setVehiculoId(int $vehiculoId): void
-    {
-        if ($vehiculoId <= 0) {
-            throw new InvalidArgumentException('El vehiculo_id debe ser mayor que cero.');
-        }
-
-        $this->vehiculoId = $vehiculoId;
-    }
-
-    private function setFechaInicio(string $fechaInicio): void
-    {
-        $this->assertValidDate($fechaInicio, 'La fecha de inicio no es válida.');
-        $this->fechaInicio = $fechaInicio;
-    }
-
-    private function setFechaFin(string $fechaFin): void
-    {
-        $this->assertValidDate($fechaFin, 'La fecha de fin no es válida.');
-        $this->fechaFin = $fechaFin;
-    }
-
-    private function setEstado(string $estado): void
-    {
-        $estado = strtolower(trim($estado));
-
-        if (!in_array($estado, self::ESTADOS_VALIDOS, true)) {
-            throw new InvalidArgumentException('El estado de la reserva no es válido.');
-        }
-
-        $this->estado = $estado;
-    }
-
-    private function validateDateRange(): void
-    {
-        if ($this->fechaFin < $this->fechaInicio) {
-            throw new InvalidArgumentException('La fecha fin no puede ser menor que la fecha inicio.');
-        }
-    }
-
-    private function assertValidDate(string $date, string $message): void
-    {
-        $dateTime = DateTime::createFromFormat('Y-m-d', $date);
-
-        if (!$dateTime || $dateTime->format('Y-m-d') !== $date) {
-            throw new InvalidArgumentException($message);
-        }
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->getId(),
-            'cliente_id' => $this->clienteId,
-            'vehiculo_id' => $this->vehiculoId,
-            'fecha_inicio' => $this->fechaInicio,
-            'fecha_fin' => $this->fechaFin,
-            'estado' => $this->estado,
-            'created_at' => $this->getCreatedAt(),
-            'updated_at' => $this->getUpdatedAt()
-        ];
+        return $this->fecha_inicio . ' / ' . $this->fecha_fin;
     }
 }

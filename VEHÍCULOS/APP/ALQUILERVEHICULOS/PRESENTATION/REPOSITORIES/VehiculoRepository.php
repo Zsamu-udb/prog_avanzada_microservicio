@@ -1,123 +1,102 @@
 <?php
 declare(strict_types=1);
 
-namespace App\AlquilerVehiculos\Presentation\Repositories;
+namespace ALQUILERVEHICULOS\Presentation\Repositories;
 
-use App\AlquilerVehiculos\Models\Vehiculo;
-use App\AlquilerVehiculos\Presentation\Repositories\Contracts\RepositoryInterface;
-use PDO;
+use ALQUILERVEHICULOS\Controllers\VehiculoController;
+use Exception;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
-class VehiculoRepository extends BaseRepository implements RepositoryInterface
+class VehiculoRepository extends AbstractRepository
 {
-    public function findAll(): array
+    public function all(Request $request, Response $response): Response
     {
-        $sql = "SELECT * FROM vehiculos ORDER BY id DESC";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute();
+        $controller = new VehiculoController();
+        $vehiculos = $controller->getVehiculos();
 
-        $vehiculos = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $vehiculos[] = $this->mapRowToVehiculo($row);
+        return $this->json($response, $vehiculos);
+    }
+
+    public function disponibles(Request $request, Response $response): Response
+    {
+        $controller = new VehiculoController();
+        $vehiculos = $controller->getVehiculosDisponibles();
+
+        return $this->json($response, $vehiculos);
+    }
+
+    public function detail(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $id = (int) $args['id'];
+
+            $controller = new VehiculoController();
+            $vehiculo = $controller->getVehiculo($id);
+
+            return $this->json($response, $vehiculo->toJson());
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
         }
-
-        return $vehiculos;
     }
 
-    public function findDisponibles(): array
+    public function create(Request $request, Response $response): Response
     {
-        $sql = "SELECT * FROM vehiculos WHERE estado = 'disponible' ORDER BY id DESC";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute();
+        try {
+            $data = $this->obtenerDatos($request);
 
-        $vehiculos = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $vehiculos[] = $this->mapRowToVehiculo($row);
+            $controller = new VehiculoController();
+            $vehiculo = $controller->guardarVehiculo($data);
+
+            return $this->json($response, $vehiculo, 201);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
         }
-
-        return $vehiculos;
     }
 
-    public function findById(int $id): ?object
+    public function update(Request $request, Response $response, array $args): Response
     {
-        $sql = "SELECT * FROM vehiculos WHERE id = :id LIMIT 1";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $id = (int) $args['id'];
+            $data = $this->obtenerDatos($request);
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $controller = new VehiculoController();
+            $vehiculo = $controller->modificarVehiculo($id, $data);
 
-        return $row ? $this->mapRowToVehiculo($row) : null;
+            return $this->json($response, $vehiculo->toJson(), 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 
-    public function create(Vehiculo $vehiculo): Vehiculo
+    public function changeEstado(Request $request, Response $response, array $args): Response
     {
-        $sql = "INSERT INTO vehiculos (marca, modelo, anio, categoria, estado)
-                VALUES (:marca, :modelo, :anio, :categoria, :estado)";
+        try {
+            $id = (int) $args['id'];
+            $data = $this->obtenerDatos($request);
 
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':marca', $vehiculo->getMarca());
-        $stmt->bindValue(':modelo', $vehiculo->getModelo());
-        $stmt->bindValue(':anio', $vehiculo->getAnio(), PDO::PARAM_INT);
-        $stmt->bindValue(':categoria', $vehiculo->getCategoria());
-        $stmt->bindValue(':estado', $vehiculo->getEstado());
-        $stmt->execute();
+            $controller = new VehiculoController();
+            $vehiculo = $controller->cambiarEstadoVehiculo($id, $data);
 
-        $vehiculo->setId((int) $this->getConnection()->lastInsertId());
-
-        return $vehiculo;
+            return $this->json($response, $vehiculo->toJson(), 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 
-    public function update(int $id, Vehiculo $vehiculo): bool
+    public function delete(Request $request, Response $response, array $args): Response
     {
-        $sql = "UPDATE vehiculos
-                SET marca = :marca,
-                    modelo = :modelo,
-                    anio = :anio,
-                    categoria = :categoria,
-                    estado = :estado
-                WHERE id = :id";
+        try {
+            $id = (int) $args['id'];
 
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->bindValue(':marca', $vehiculo->getMarca());
-        $stmt->bindValue(':modelo', $vehiculo->getModelo());
-        $stmt->bindValue(':anio', $vehiculo->getAnio(), PDO::PARAM_INT);
-        $stmt->bindValue(':categoria', $vehiculo->getCategoria());
-        $stmt->bindValue(':estado', $vehiculo->getEstado());
+            $controller = new VehiculoController();
+            $controller->borrarVehiculo($id);
 
-        return $stmt->execute();
-    }
-
-    public function updateEstado(int $id, string $estado): bool
-    {
-        $sql = "UPDATE vehiculos SET estado = :estado WHERE id = :id";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->bindValue(':estado', $estado);
-
-        return $stmt->execute();
-    }
-
-    public function delete(int $id): bool
-    {
-        $sql = "DELETE FROM vehiculos WHERE id = :id";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
-
-    private function mapRowToVehiculo(array $row): Vehiculo
-    {
-        return new Vehiculo(
-            isset($row['id']) ? (int) $row['id'] : null,
-            $row['marca'],
-            $row['modelo'],
-            (int) $row['anio'],
-            $row['categoria'] ?? null,
-            $row['estado'],
-            $row['created_at'] ?? null,
-            $row['updated_at'] ?? null
-        );
+            return $this->json($response, [
+                'message' => 'Vehículo borrado correctamente'
+            ], 200);
+        } catch (Exception $exception) {
+            return $this->jsonError($response, $exception);
+        }
     }
 }
