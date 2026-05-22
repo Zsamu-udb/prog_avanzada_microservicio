@@ -1,0 +1,274 @@
+@baseUrl = http://127.0.0.1:8000
+
+### ==================================
+### TEST API
+### ==================================
+
+GET {{baseUrl}}/
+
+### ==================================
+### CLIENTES
+### ==================================
+
+### Consultar todos los clientes
+GET {{baseUrl}}/clientes
+
+###
+
+### Consultar cliente por id
+GET {{baseUrl}}/clientes/1
+
+###
+
+### Historial de reservas del cliente
+GET {{baseUrl}}/clientes/1/reservas
+
+###
+
+### Crear cliente
+POST {{baseUrl}}/clientes
+Content-Type: application/json
+
+{
+  "nombre": "Carlos Ramírez",
+  "telefono": "3201234567",
+  "correo": "carlos.ramirez@test.com",
+  "numero_licencia": "LIC123456"
+}
+
+###
+
+### Modificar cliente
+PUT {{baseUrl}}/clientes/1
+Content-Type: application/json
+
+{
+  "nombre": "Carlos Ramírez Actualizado",
+  "telefono": "3209998888",
+  "correo": "carlos.actualizado@test.com",
+  "numero_licencia": "LIC999888"
+}
+
+###
+
+### Borrar cliente
+DELETE {{baseUrl}}/clientes/2
+
+###
+
+### Error cliente inexistente
+GET {{baseUrl}}/clientes/999
+
+###
+
+### Error correo inválido
+POST {{baseUrl}}/clientes
+Content-Type: application/json
+
+{
+  "nombre": "Juan Pérez",
+  "correo": "correo-invalido"
+}
+
+### ==================================
+### VEHICULOS
+### ==================================
+
+### Consultar todos los vehículos
+GET {{baseUrl}}/vehiculos
+
+###
+
+### Consultar vehículos disponibles
+GET {{baseUrl}}/vehiculos/disponibles
+
+###
+
+### Consultar vehículo por id
+GET {{baseUrl}}/vehiculos/1
+
+###
+
+### Historial de reservas del vehículo
+GET {{baseUrl}}/vehiculos/1/reservas
+
+###
+
+### Crear vehículo
+POST {{baseUrl}}/vehiculos
+Content-Type: application/json
+
+{
+  "marca": "Toyota",
+  "modelo": "Corolla",
+  "anio": 2022,
+  "categoria": "Sedan",
+  "estado": "disponible"
+}
+
+###
+
+### Modificar vehículo
+PUT {{baseUrl}}/vehiculos/1
+Content-Type: application/json
+
+{
+  "marca": "Toyota",
+  "modelo": "Corolla Cross",
+  "anio": 2023,
+  "categoria": "SUV",
+  "estado": "disponible"
+}
+
+###
+
+### Cambiar estado
+PATCH {{baseUrl}}/vehiculos/1/estado
+Content-Type: application/json
+
+{
+  "estado": "mantenimiento"
+}
+
+###
+
+### Subir imagen
+POST {{baseUrl}}/vehiculos/1/imagen
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="imagen"; filename="carro.jpg"
+Content-Type: image/jpeg
+
+< C:\ruta\real\de\tu\imagen\carro.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Borrar vehículo
+DELETE {{baseUrl}}/vehiculos/2
+
+###
+
+### Error vehículo inexistente
+GET {{baseUrl}}/vehiculos/999
+
+###
+
+### Error año inválido
+POST {{baseUrl}}/vehiculos
+Content-Type: application/json
+
+{
+  "marca": "Toyota",
+  "modelo": "Corolla",
+  "anio": 3000
+}
+
+### ==================================
+### RESERVAS
+### ==================================
+
+### Consultar todas las reservas
+GET {{baseUrl}}/reservas
+
+###
+
+### Consultar reserva por id
+GET {{baseUrl}}/reservas/1
+
+###
+
+### Crear reserva
+POST {{baseUrl}}/reservas
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2026-05-21",
+  "fecha_fin": "2026-05-25",
+  "estado": "activa"
+}
+
+###
+
+### Modificar reserva
+PUT {{baseUrl}}/reservas/1
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2026-05-22",
+  "fecha_fin": "2026-05-27",
+  "estado": "activa"
+}
+
+###
+
+### Completar reserva
+PATCH {{baseUrl}}/reservas/1/completar
+Content-Type: application/json
+
+{}
+
+###
+
+### Cancelar reserva
+PATCH {{baseUrl}}/reservas/1/cancelar
+Content-Type: application/json
+
+{}
+
+###
+
+### Borrar reserva
+DELETE {{baseUrl}}/reservas/2
+
+###
+
+### Error reserva inexistente
+GET {{baseUrl}}/reservas/999
+
+###
+
+### Error fecha inválida
+POST {{baseUrl}}/reservas
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2026-05-30",
+  "fecha_fin": "2026-05-20",
+  "estado": "activa"
+}
+
+###
+
+### Error reserva en fecha pasada
+POST {{baseUrl}}/reservas
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2020-01-01",
+  "fecha_fin": "2020-01-05",
+  "estado": "activa"
+}
+
+###
+
+### Error conflicto de reserva
+POST {{baseUrl}}/reservas
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "vehiculo_id": 1,
+  "fecha_inicio": "2026-05-22",
+  "fecha_fin": "2026-05-24",
+  "estado": "activa"
+}
