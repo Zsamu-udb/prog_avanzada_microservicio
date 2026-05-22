@@ -500,3 +500,20 @@ table td {
     align-items: stretch;
   }
 }
+/* Parche: fuerza texto visible en todos los inputs principales */
+#clienteNombre,
+#clienteTelefono,
+#clienteCorreo,
+#clienteLicencia,
+#vehiculoMarca,
+#vehiculoModelo,
+#vehiculoAnio,
+#vehiculoCategoria,
+#reservaCliente,
+#reservaVehiculo,
+#reservaFechaInicio,
+#reservaFechaFin {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #ffffff !important; /* Safari / Chromium */
+}

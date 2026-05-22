@@ -26,6 +26,8 @@ scrollToPanelBtn?.addEventListener("click", () => {
   scrollToPanel();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   activateTab("tab-clientes");
+  await consultarClientes();
+  await consultarVehiculos();
 });
