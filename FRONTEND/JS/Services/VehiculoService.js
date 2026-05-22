@@ -1,7 +1,4 @@
-// js/services/VehiculoService.js
-import { ApiClient } from "../core/api.js";
-
-export class VehiculoService {
+class VehiculoService {
   constructor() {
     this.api = new ApiClient();
   }
@@ -23,7 +20,7 @@ export class VehiculoService {
   }
 
   changeEstado(id, estado) {
-    return this.api.patch(`/vehiculos/${id}/estado`, { estado });
+    return this.api.patch(`/vehiculos/${id}/estado`, { estado: estado });
   }
 
   delete(id) {

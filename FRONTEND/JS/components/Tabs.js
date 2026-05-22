@@ -1,5 +1,4 @@
-// js/components/Tabs.js
-export class Tabs {
+class Tabs {
   constructor(navEl, panels) {
     this.navEl = navEl;
     this.panels = Array.from(panels);
@@ -12,14 +11,17 @@ export class Tabs {
   }
 
   activate(tabName) {
-    // Botones
-    this.navEl.querySelectorAll(".tab").forEach((btn) => {
+    document.querySelectorAll(".tab").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.tab === tabName);
     });
 
-    // Paneles
     this.panels.forEach((panel) => {
       panel.classList.toggle("active", panel.id === `tab-${tabName}`);
     });
+
+    const target = document.getElementById(`tab-${tabName}`);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 }

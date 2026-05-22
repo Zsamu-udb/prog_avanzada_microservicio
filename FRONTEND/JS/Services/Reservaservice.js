@@ -1,7 +1,4 @@
-// js/services/ReservaService.js
-import { ApiClient } from "../core/api.js";
-
-export class ReservaService {
+class ReservaService {
   constructor() {
     this.api = new ApiClient();
   }

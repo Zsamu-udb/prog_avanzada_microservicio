@@ -1,5 +1,4 @@
-// js/components/Modal.js
-export class Modal {
+class Modal {
   constructor(root) {
     this.root = root;
     this.titleEl = root.querySelector(".modal__title");
@@ -9,8 +8,8 @@ export class Modal {
     this.okBtn.addEventListener("click", () => this.hide());
   }
 
-  show(message, title = "Información") {
-    this.titleEl.textContent = title;
+  show(message, title) {
+    this.titleEl.textContent = title || "Información";
     this.messageEl.textContent = message;
     this.root.classList.remove("hidden");
   }

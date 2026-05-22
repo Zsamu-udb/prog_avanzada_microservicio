@@ -1,14 +1,10 @@
-// js/modules/reservas/ReservaModule.js
-import { ReservaService } from "../../services/ReservaService.js";
-import { Validator } from "../../core/validator.js";
-
-export class ReservaModule {
-  constructor({ modal, clienteModule, vehiculoModule }) {
-    this.modal = modal;
+class ReservaModule {
+  constructor(options) {
+    this.modal = options.modal;
     this.service = new ReservaService();
     this.reservas = [];
-    this.clienteModule = clienteModule;
-    this.vehiculoModule = vehiculoModule;
+    this.clienteModule = options.clienteModule;
+    this.vehiculoModule = options.vehiculoModule;
 
     this.form = document.getElementById("reservaForm");
     this.tableBody = document.querySelector("#reservasTabla tbody");
@@ -19,7 +15,6 @@ export class ReservaModule {
     this.btnRefrescar.addEventListener("click", () => this.loadReservas());
   }
 
-  // Llenar selects de clientes y vehículos usando los otros módulos
   syncFromModules() {
     const clienteSelect = this.form.cliente_id;
     const vehiculoSelect = this.form.vehiculo_id;
@@ -52,17 +47,14 @@ export class ReservaModule {
 
     if (this.reservas.length === 0) {
       const tr = document.createElement("tr");
-      tr.innerHTML =
-        '<td colspan="6" class="table__empty">Sin reservas registradas</td>';
+      tr.innerHTML = '<td colspan="6" class="table__empty">Sin reservas registradas</td>';
       this.tableBody.appendChild(tr);
       return;
     }
 
     this.reservas.forEach((r) => {
-      const clienteNombre = r.cliente?.nombre || r.cliente_id;
-      const vehiculoNombre = r.vehiculo
-        ? `${r.vehiculo.marca} ${r.vehiculo.modelo}`
-        : r.vehiculo_id;
+      const clienteNombre = r.cliente ? r.cliente.nombre : r.cliente_id;
+      const vehiculoNombre = r.vehiculo ? `${r.vehiculo.marca} ${r.vehiculo.modelo}` : r.vehiculo_id;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -79,36 +71,28 @@ export class ReservaModule {
         </td>
       `;
 
-      tr
-        .querySelector('[data-action="edit"]')
-        .addEventListener("click", () => this.fillForm(r));
-      tr
-        .querySelector('[data-action="completar"]')
-        .addEventListener("click", () => this.completar(r.id));
-      tr
-        .querySelector('[data-action="cancelar"]')
-        .addEventListener("click", () => this.cancelar(r.id));
-      tr
-        .querySelector('[data-action="delete"]')
-        .addEventListener("click", () => this.delete(r.id));
+      tr.querySelector('[data-action="edit"]').addEventListener("click", () => this.fillForm(r));
+      tr.querySelector('[data-action="completar"]').addEventListener("click", () => this.completar(r.id));
+      tr.querySelector('[data-action="cancelar"]').addEventListener("click", () => this.cancelar(r.id));
+      tr.querySelector('[data-action="delete"]').addEventListener("click", () => this.delete(r.id));
 
       this.tableBody.appendChild(tr);
     });
   }
 
   fillForm(r) {
-    this.form.id.value = r.id;
-    this.form.cliente_id.value = r.cliente_id;
-    this.form.vehiculo_id.value = r.vehiculo_id;
-    this.form.fecha_inicio.value = r.fecha_inicio;
-    this.form.fecha_fin.value = r.fecha_fin;
-    this.form.estado.value = r.estado;
+    this.form.id.value = r.id || "";
+    this.form.cliente_id.value = r.cliente_id || "";
+    this.form.vehiculo_id.value = r.vehiculo_id || "";
+    this.form.fecha_inicio.value = r.fecha_inicio || "";
+    this.form.fecha_fin.value = r.fecha_fin || "";
+    this.form.estado.value = r.estado || "activa";
   }
 
   clearErrors() {
-    this.form
-      .querySelectorAll(".field__error")
-      .forEach((span) => (span.textContent = ""));
+    this.form.querySelectorAll(".field__error").forEach((span) => {
+      span.textContent = "";
+    });
   }
 
   setError(field, message) {
@@ -122,7 +106,7 @@ export class ReservaModule {
       vehiculo_id: this.form.vehiculo_id.value,
       fecha_inicio: this.form.fecha_inicio.value,
       fecha_fin: this.form.fecha_fin.value,
-      estado: this.form.estado.value,
+      estado: this.form.estado.value
     };
   }
 
@@ -134,18 +118,22 @@ export class ReservaModule {
       this.setError("cliente_id", "El cliente es obligatorio");
       ok = false;
     }
+
     if (!Validator.required(data.vehiculo_id)) {
       this.setError("vehiculo_id", "El vehículo es obligatorio");
       ok = false;
     }
+
     if (!Validator.required(data.fecha_inicio)) {
       this.setError("fecha_inicio", "La fecha de inicio es obligatoria");
       ok = false;
     }
+
     if (!Validator.required(data.fecha_fin)) {
       this.setError("fecha_fin", "La fecha fin es obligatoria");
       ok = false;
     }
+
     if (data.fecha_inicio && data.fecha_fin && data.fecha_fin < data.fecha_inicio) {
       this.setError("fecha_fin", "La fecha fin no puede ser menor a la de inicio");
       ok = false;
@@ -156,6 +144,7 @@ export class ReservaModule {
 
   async onSubmit(e) {
     e.preventDefault();
+
     const id = this.form.id.value;
     const data = this.getFormData();
 
@@ -164,10 +153,10 @@ export class ReservaModule {
     try {
       if (id) {
         await this.service.update(id, data);
-        this.modal.show("Reserva actualizada correctamente");
+        this.modal.show("Reserva actualizada correctamente", "Información");
       } else {
         await this.service.create(data);
-        this.modal.show("Reserva creada correctamente");
+        this.modal.show("Reserva creada correctamente", "Información");
       }
 
       this.form.reset();
@@ -186,7 +175,7 @@ export class ReservaModule {
   async completar(id) {
     try {
       await this.service.completar(id);
-      this.modal.show("Reserva completada");
+      this.modal.show("Reserva completada", "Información");
       await this.loadReservas();
     } catch (err) {
       this.modal.show(err.message, "Error");
@@ -196,7 +185,7 @@ export class ReservaModule {
   async cancelar(id) {
     try {
       await this.service.cancelar(id);
-      this.modal.show("Reserva cancelada");
+      this.modal.show("Reserva cancelada", "Información");
       await this.loadReservas();
     } catch (err) {
       this.modal.show(err.message, "Error");
@@ -208,7 +197,7 @@ export class ReservaModule {
 
     try {
       await this.service.delete(id);
-      this.modal.show("Reserva borrada correctamente");
+      this.modal.show("Reserva borrada correctamente", "Información");
       await this.loadReservas();
     } catch (err) {
       this.modal.show(err.message, "Error");

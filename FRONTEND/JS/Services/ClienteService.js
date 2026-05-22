@@ -1,7 +1,4 @@
-// js/services/ClienteService.js
-import { ApiClient } from "../core/api.js";
-
-export class ClienteService {
+class ClienteService {
   constructor() {
     this.api = new ApiClient();
   }

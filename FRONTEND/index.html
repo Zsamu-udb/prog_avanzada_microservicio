@@ -1,494 +1,355 @@
 <!doctype html>
-<html lang="es" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AllCars · Gestor de Alquiler de Vehículos</title>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Alquiler de Vehículos</title>
 
-    <!-- Fuente Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- CSS separados -->
-    <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/layout.css" />
-    <link rel="stylesheet" href="css/components.css" />
-  </head>
-  <body>
-    <!-- SHELL SUPERIOR / HERO -->
-    <header class="shell">
-      <div class="shell__topbar">
-        <div class="brand">
-          <div class="brand__logo">AC</div>
-          <div class="brand__text">
-            <span class="brand__name">AllCars</span>
-            <span class="brand__tagline">Premium rental system</span>
-          </div>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="shell__topbar">
+      <div class="brand">
+        <div class="brand__logo">GV</div>
+        <div class="brand__text">
+          <span class="brand__name">Gestor Vehicular</span>
+          <span class="brand__tagline">Reservas · clientes · flota</span>
         </div>
-
-        <button class="btn-outline" type="button" data-scroll-target="#panel">
-          Explorar panel
-        </button>
       </div>
-
-      <section class="hero">
-        <div class="hero__content">
-          <p class="eyebrow">Gestión premium de alquiler de vehículos</p>
-          <h1 class="hero__title">
-            Gestiona tu flota<br />
-            con una experiencia<br />
-            premium
-          </h1>
-          <p class="hero__subtitle">
-            Administra clientes, vehículos y reservas desde una interfaz moderna,
-            oscura y profesional pensada para microservicios.
-          </p>
-
-          <div class="hero__actions">
-            <button
-              class="btn-primary"
-              type="button"
-              data-scroll-target="#panel"
-            >
-              Entrar al sistema
-            </button>
-            <button
-  class="btn-ghost"
-  type="button"
-  data-scroll-target="#panel"
-  data-open-tab="vehiculos"
->
-  Ver vehículos
-</button>
-          </div>
-        </div>
-
-        <div class="hero__media">
-          <!-- Cambia la ruta de la imagen por tu propio carro si quieres -->
-          <div class="car-card">
-            <div class="car-card__glow"></div>
-            <img
-              src="assets/images/supercar.png"
-              alt="Vehículo deportivo premium"
-              class="car-card__image"
-            />
-          </div>
-        </div>
-      </section>
     </header>
 
-    <!-- PANEL OPERATIVO -->
-    <main class="panel" id="panel">
-      <section class="panel__header">
-        <p class="panel__eyebrow">Panel operativo</p>
-        <h2 class="panel__title">Administración central</h2>
-      </section>
+    <section class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">Microservicio de alquiler</p>
+        <h1 class="hero__title">Administra clientes, vehículos y reservas en un solo panel.</h1>
+        <p class="hero__subtitle">
+          Controla disponibilidad, historial, estados y alquileres con una interfaz clara,
+          rápida y compatible con tu API en localhost.
+        </p>
+        <div class="hero__actions">
+          <button class="btn-primary tab" data-tab="clientes" type="button">Ir a clientes</button>
+          <button class="btn-ghost tab" data-tab="vehiculos" type="button">Ir a vehículos</button>
+          <button class="btn-outline tab" data-tab="reservas" type="button">Ir a reservas</button>
+        </div>
+      </div>
 
-      <!-- KPIs -->
+      <div class="hero__media">
+        <article class="car-card">
+          <div class="car-card__glow"></div>
+          <img
+            class="car-card__image"
+            src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80"
+            alt="Vehículo para alquiler"
+          >
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <main class="panel">
+    <header class="panel__header">
+      <p class="panel__eyebrow">Control general</p>
+      <h2 class="panel__title">Panel operativo</h2>
+
       <section class="kpi-row">
         <article class="kpi">
-          <header class="kpi__header">
-            <span class="kpi__label">Vehículos</span>
-          </header>
-          <p class="kpi__value" id="kpiVehiculos">0</p>
-        </article>
-
-        <article class="kpi">
-          <header class="kpi__header">
-            <span class="kpi__label">Clientes</span>
-          </header>
+          <div class="kpi__header">
+            <p class="kpi__label">Clientes</p>
+          </div>
           <p class="kpi__value" id="kpiClientes">0</p>
         </article>
 
         <article class="kpi">
-          <header class="kpi__header">
-            <span class="kpi__label">Reservas</span>
-          </header>
+          <div class="kpi__header">
+            <p class="kpi__label">Vehículos</p>
+          </div>
+          <p class="kpi__value" id="kpiVehiculos">0</p>
+        </article>
+
+        <article class="kpi">
+          <div class="kpi__header">
+            <p class="kpi__label">Reservas activas</p>
+          </div>
           <p class="kpi__value" id="kpiReservasActivas">0</p>
         </article>
       </section>
 
-      <!-- TABS MÓDULOS -->
-      <nav class="segment-tabs" aria-label="Módulos">
-        <button
-          class="segment-tabs__item tab active"
-          data-tab="clientes"
-          type="button"
-        >
-          Clientes
-        </button>
-        <button class="segment-tabs__item tab" data-tab="vehiculos" type="button">
-          Vehículos
-        </button>
-        <button class="segment-tabs__item tab" data-tab="reservas" type="button">
-          Reservas
-        </button>
+      <nav class="segment-tabs" id="tabsNav">
+        <button class="segment-tabs__item tab active" type="button" data-tab="clientes">Clientes</button>
+        <button class="segment-tabs__item tab" type="button" data-tab="vehiculos">Vehículos</button>
+        <button class="segment-tabs__item tab" type="button" data-tab="reservas">Reservas</button>
       </nav>
+    </header>
 
-      <!-- MÓDULO CLIENTES -->
-      <section
-        class="module tab-panel active"
-        id="tab-clientes"
-        aria-label="Módulo de clientes"
-      >
-        <header class="module__header">
-          <p class="module__eyebrow">Módulo 01</p>
-          <h3 class="module__title">Clientes</h3>
-          <p class="module__subtitle">
-            Gestión completa de clientes registrados.
-          </p>
-        </header>
+    <section id="tab-clientes" class="tab-panel active module">
+      <header class="module__header">
+        <p class="module__eyebrow">Módulo 01</p>
+        <h2 class="module__title">Clientes</h2>
+        <p class="module__subtitle">Registra y administra los datos de los clientes.</p>
+      </header>
 
-        <div class="module__grid">
-          <!-- FORM CLIENTE -->
-          <section class="card card--form">
-            <h4 class="card__title">Nuevo cliente</h4>
-            <form id="clienteForm" autocomplete="off" class="stack">
-              <input type="hidden" name="id" />
+      <div class="module__grid">
+        <article class="card card--form">
+          <h3 class="card__title">Formulario de cliente</h3>
 
-              <label class="field">
-                <span class="field__label">Nombre</span>
-                <input
-                  type="text"
-                  name="nombre"
-                  placeholder="Nombre completo"
-                />
-                <span class="field__error" data-error-for="nombre"></span>
-              </label>
+          <form id="clienteForm" class="stack">
+            <input type="hidden" name="id">
 
-              <label class="field">
-                <span class="field__label">Teléfono</span>
-                <input
-                  type="tel"
-                  name="telefono"
-                  placeholder="Número de contacto"
-                />
-                <span class="field__error" data-error-for="telefono"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Correo</span>
-                <input
-                  type="email"
-                  name="correo"
-                  placeholder="correo@ejemplo.com"
-                />
-                <span class="field__error" data-error-for="correo"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Licencia</span>
-                <input
-                  type="text"
-                  name="numero_licencia"
-                  placeholder="Número de licencia"
-                />
-                <span
-                  class="field__error"
-                  data-error-for="numero_licencia"
-                ></span>
-              </label>
-
-              <div class="form-actions">
-                <button type="reset" class="btn-soft">Cancelar</button>
-                <button type="submit" class="btn-gradient">
-                  Guardar cliente
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <!-- TABLA CLIENTES -->
-          <section class="card card--table">
-            <div class="card__header-row">
-              <h4 class="card__title">Clientes registrados</h4>
-              <button
-                type="button"
-                class="btn-soft"
-                id="btnRefrescarClientes"
-              >
-                Refrescar
-              </button>
+            <div class="field">
+              <label class="field__label" for="clienteNombre">Nombre</label>
+              <input id="clienteNombre" type="text" name="nombre" placeholder="Carlos Ramírez">
+              <span class="field__error" data-error-for="nombre"></span>
             </div>
 
-            <div class="table-wrap">
-              <table id="clientesTabla">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Teléfono</th>
-                    <th>Correo</th>
-                    <th>Licencia</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="5" class="table__empty">
-                      Sin clientes registrados
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <!-- MÓDULO VEHÍCULOS -->
-      <section
-        class="module tab-panel"
-        id="tab-vehiculos"
-        aria-label="Módulo de vehículos"
-      >
-        <header class="module__header">
-          <p class="module__eyebrow">Módulo 02</p>
-          <h3 class="module__title">Vehículos</h3>
-          <p class="module__subtitle">
-            Alta y administración de la flota disponible para alquiler.
-          </p>
-        </header>
-
-        <div class="module__grid">
-          <!-- FORM VEHÍCULO -->
-          <section class="card card--form">
-            <h4 class="card__title">Nuevo vehículo</h4>
-            <form id="vehiculoForm" autocomplete="off" class="stack">
-              <input type="hidden" name="id" />
-
-              <label class="field">
-                <span class="field__label">Marca</span>
-                <input type="text" name="marca" placeholder="Ej: Toyota" />
-                <span class="field__error" data-error-for="marca"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Modelo</span>
-                <input type="text" name="modelo" placeholder="Ej: Corolla" />
-                <span class="field__error" data-error-for="modelo"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Año</span>
-                <input type="number" name="anio" placeholder="Ej: 2024" />
-                <span class="field__error" data-error-for="anio"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Categoría</span>
-                <input
-                  type="text"
-                  name="categoria"
-                  placeholder="Sedán, SUV, etc."
-                />
-                <span class="field__error" data-error-for="categoria"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Estado</span>
-                <select name="estado">
-                  <option value="disponible">Disponible</option>
-                  <option value="alquilado">Alquilado</option>
-                  <option value="mantenimiento">Mantenimiento</option>
-                </select>
-                <span class="field__error" data-error-for="estado"></span>
-              </label>
-
-              <div class="form-actions">
-                <button type="reset" class="btn-soft">Cancelar</button>
-                <button type="submit" class="btn-gradient">
-                  Guardar vehículo
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <!-- TABLA VEHÍCULOS -->
-          <section class="card card--table">
-            <div class="card__header-row">
-              <h4 class="card__title">Vehículos registrados</h4>
-              <div class="card__header-actions">
-                <button
-                  type="button"
-                  class="btn-soft"
-                  id="btnFiltrarDisponibles"
-                >
-                  Solo disponibles
-                </button>
-                <button
-                  type="button"
-                  class="btn-soft"
-                  id="btnRefrescarVehiculos"
-                >
-                  Refrescar
-                </button>
-              </div>
+            <div class="field">
+              <label class="field__label" for="clienteTelefono">Teléfono</label>
+              <input id="clienteTelefono" type="text" name="telefono" placeholder="3201234567">
+              <span class="field__error" data-error-for="telefono"></span>
             </div>
 
-            <div class="table-wrap">
-              <table id="vehiculosTabla">
-                <thead>
-                  <tr>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>Año</th>
-                    <th>Categoría</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="6" class="table__empty">
-                      Sin vehículos registrados
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <!-- MÓDULO RESERVAS -->
-      <section
-        class="module tab-panel"
-        id="tab-reservas"
-        aria-label="Módulo de reservas"
-      >
-        <header class="module__header">
-          <p class="module__eyebrow">Módulo 03</p>
-          <h3 class="module__title">Reservas</h3>
-          <p class="module__subtitle">
-            Control de periodos, estados y conflictos de reservas.
-          </p>
-        </header>
-
-        <div class="module__grid">
-          <!-- FORM RESERVA -->
-          <section class="card card--form">
-            <h4 class="card__title">Nueva reserva</h4>
-            <form id="reservaForm" autocomplete="off" class="stack">
-              <input type="hidden" name="id" />
-
-              <label class="field">
-                <span class="field__label">Cliente</span>
-                <select name="cliente_id"></select>
-                <span class="field__error" data-error-for="cliente_id"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Vehículo</span>
-                <select name="vehiculo_id"></select>
-                <span class="field__error" data-error-for="vehiculo_id"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Fecha inicio</span>
-                <input type="date" name="fecha_inicio" />
-                <span class="field__error" data-error-for="fecha_inicio"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Fecha fin</span>
-                <input type="date" name="fecha_fin" />
-                <span class="field__error" data-error-for="fecha_fin"></span>
-              </label>
-
-              <label class="field">
-                <span class="field__label">Estado</span>
-                <select name="estado">
-                  <option value="activa">Activa</option>
-                  <option value="completada">Completada</option>
-                  <option value="cancelada">Cancelada</option>
-                </select>
-                <span class="field__error" data-error-for="estado"></span>
-              </label>
-
-              <div class="form-actions">
-                <button type="reset" class="btn-soft">Cancelar</button>
-                <button type="submit" class="btn-gradient">
-                  Guardar reserva
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <!-- TABLA RESERVAS -->
-          <section class="card card--table">
-            <div class="card__header-row">
-              <h4 class="card__title">Reservas registradas</h4>
-              <button
-                type="button"
-                class="btn-soft"
-                id="btnRefrescarReservas"
-              >
-                Refrescar
-              </button>
+            <div class="field">
+              <label class="field__label" for="clienteCorreo">Correo</label>
+              <input id="clienteCorreo" type="email" name="correo" placeholder="correo@ejemplo.com">
+              <span class="field__error" data-error-for="correo"></span>
             </div>
 
-            <div class="table-wrap">
-              <table id="reservasTabla">
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Vehículo</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="6" class="table__empty">
-                      Sin reservas registradas
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="field">
+              <label class="field__label" for="clienteLicencia">Número de licencia</label>
+              <input id="clienteLicencia" type="text" name="numero_licencia" placeholder="LIC123456">
+              <span class="field__error" data-error-for="numero_licencia"></span>
             </div>
-          </section>
-        </div>
-      </section>
-    </main>
 
-    <!-- MODAL GENERAL -->
-    <div
-      id="modal"
-      class="modal hidden"
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
-      <div class="modal__content">
-        <h2 id="modal-title" class="modal__title"></h2>
-        <p class="modal__message"></p>
-        <div class="modal__actions">
-          <button type="button" class="btn-gradient" id="modalOkBtn">
-            Aceptar
-          </button>
-        </div>
+            <div class="form-actions">
+              <button class="btn-ghost" type="reset">Cancelar</button>
+              <button class="btn-primary" type="submit">Guardar</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="card card--table">
+          <div class="card__header-row">
+            <h3 class="card__title">Listado de clientes</h3>
+            <div class="card__header-actions">
+              <button id="btnRefrescarClientes" class="btn-outline" type="button">Refrescar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="clientesTabla">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Teléfono</th>
+                  <th>Correo</th>
+                  <th>Licencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="tab-vehiculos" class="tab-panel module">
+      <header class="module__header">
+        <p class="module__eyebrow">Módulo 02</p>
+        <h2 class="module__title">Vehículos</h2>
+        <p class="module__subtitle">Administra la flota, estado y disponibilidad.</p>
+      </header>
+
+      <div class="module__grid">
+        <article class="card card--form">
+          <h3 class="card__title">Formulario de vehículo</h3>
+
+          <form id="vehiculoForm" class="stack">
+            <input type="hidden" name="id">
+
+            <div class="field">
+              <label class="field__label" for="vehiculoMarca">Marca</label>
+              <input id="vehiculoMarca" type="text" name="marca" placeholder="Toyota">
+              <span class="field__error" data-error-for="marca"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="vehiculoModelo">Modelo</label>
+              <input id="vehiculoModelo" type="text" name="modelo" placeholder="Corolla">
+              <span class="field__error" data-error-for="modelo"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="vehiculoAnio">Año</label>
+              <input id="vehiculoAnio" type="number" name="anio" placeholder="2024">
+              <span class="field__error" data-error-for="anio"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="vehiculoCategoria">Categoría</label>
+              <input id="vehiculoCategoria" type="text" name="categoria" placeholder="Sedan">
+              <span class="field__error" data-error-for="categoria"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="vehiculoEstado">Estado</label>
+              <select id="vehiculoEstado" name="estado">
+                <option value="disponible">Disponible</option>
+                <option value="alquilado">Alquilado</option>
+                <option value="mantenimiento">Mantenimiento</option>
+              </select>
+              <span class="field__error" data-error-for="estado"></span>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-ghost" type="reset">Cancelar</button>
+              <button class="btn-primary" type="submit">Guardar</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="card card--table">
+          <div class="card__header-row">
+            <h3 class="card__title">Listado de vehículos</h3>
+            <div class="card__header-actions">
+              <button id="btnFiltrarDisponibles" class="btn-outline" type="button">Solo disponibles</button>
+              <button id="btnRefrescarVehiculos" class="btn-outline" type="button">Refrescar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="vehiculosTabla">
+              <thead>
+                <tr>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Año</th>
+                  <th>Categoría</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="tab-reservas" class="tab-panel module">
+      <header class="module__header">
+        <p class="module__eyebrow">Módulo 03</p>
+        <h2 class="module__title">Reservas</h2>
+        <p class="module__subtitle">Crea, actualiza, completa y cancela reservas.</p>
+      </header>
+
+      <div class="module__grid">
+        <article class="card card--form">
+          <h3 class="card__title">Formulario de reserva</h3>
+
+          <form id="reservaForm" class="stack">
+            <input type="hidden" name="id">
+
+            <div class="field">
+              <label class="field__label" for="reservaCliente">Cliente</label>
+              <select id="reservaCliente" name="cliente_id"></select>
+              <span class="field__error" data-error-for="cliente_id"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="reservaVehiculo">Vehículo</label>
+              <select id="reservaVehiculo" name="vehiculo_id"></select>
+              <span class="field__error" data-error-for="vehiculo_id"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="reservaFechaInicio">Fecha inicio</label>
+              <input id="reservaFechaInicio" type="date" name="fecha_inicio">
+              <span class="field__error" data-error-for="fecha_inicio"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="reservaFechaFin">Fecha fin</label>
+              <input id="reservaFechaFin" type="date" name="fecha_fin">
+              <span class="field__error" data-error-for="fecha_fin"></span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="reservaEstado">Estado</label>
+              <select id="reservaEstado" name="estado">
+                <option value="activa">Activa</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+              <span class="field__error" data-error-for="estado"></span>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-ghost" type="reset">Cancelar</button>
+              <button class="btn-primary" type="submit">Guardar</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="card card--table">
+          <div class="card__header-row">
+            <h3 class="card__title">Listado de reservas</h3>
+            <div class="card__header-actions">
+              <button id="btnRefrescarReservas" class="btn-outline" type="button">Refrescar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="reservasTabla">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Vehículo</th>
+                  <th>Inicio</th>
+                  <th>Fin</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div id="appModal" class="modal hidden">
+    <div class="modal__content">
+      <h3 class="modal__title">Información</h3>
+      <p class="modal__message">Mensaje</p>
+      <div class="modal__actions">
+        <button id="modalOkBtn" class="btn-primary" type="button">Aceptar</button>
       </div>
     </div>
+  </div>
 
-    <!-- JS principal (módulos) -->
-    <script type="module" src="js/app.js"></script>
+ <script src="js/core/config.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/validator.js"></script>
 
-    <!-- Scroll suave para botones con data-scroll-target -->
-    <script>
-      document.addEventListener("click", (e) => {
-        const btn = e.target.closest("[data-scroll-target]");
-        if (!btn) return;
-        const selector = btn.getAttribute("data-scroll-target");
-        const target = document.querySelector(selector);
-        if (target)
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    </script>
-  </body>
+<script src="js/components/Modal.js"></script>
+<script src="js/components/Tabs.js"></script>
+<script src="js/components/Dashboard.js"></script>
+
+<script src="js/Services/ClienteService.js"></script>
+<script src="js/Services/VehiculoService.js"></script>
+<script src="js/Services/ReservaService.js"></script>
+
+<script src="js/modules/clientes/ClienteModule.js"></script>
+<script src="js/modules/vehiculos/VehiculoModule.js"></script>
+<script src="js/modules/reservas/ReservaModule.js"></script>
+
+<script src="js/app.js"></script>
 </html>

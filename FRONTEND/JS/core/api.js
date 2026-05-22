@@ -1,16 +1,11 @@
-// js/core/api.js
-import { CONFIG } from "./config.js";
-
-export class ApiClient {
+class ApiClient {
   async request(endpoint, options = {}) {
     const response = await fetch(`${CONFIG.BASE_URL}${endpoint}`, {
       headers: {
-        ...(options.body instanceof FormData
-          ? {}
-          : { "Content-Type": "application/json" }),
-        ...options.headers,
+        ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        ...options.headers
       },
-      ...options,
+      ...options
     });
 
     const contentType = response.headers.get("content-type") || "";
@@ -18,7 +13,7 @@ export class ApiClient {
     const data = isJson ? await response.json() : null;
 
     if (!response.ok) {
-      const message = data?.message || data?.error || "Error en la solicitud";
+      const message = (data && (data.message || data.error)) || "Error en la solicitud";
       throw new Error(message);
     }
 
@@ -32,21 +27,21 @@ export class ApiClient {
   post(endpoint, body) {
     return this.request(endpoint, {
       method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body)
     });
   }
 
   put(endpoint, body) {
     return this.request(endpoint, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify(body)
     });
   }
 
   patch(endpoint, body = {}) {
     return this.request(endpoint, {
       method: "PATCH",
-      body: JSON.stringify(body),
+      body: JSON.stringify(body)
     });
   }
 
