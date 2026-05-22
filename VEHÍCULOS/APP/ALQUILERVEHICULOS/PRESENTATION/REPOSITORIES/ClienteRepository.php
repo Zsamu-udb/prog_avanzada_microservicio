@@ -76,4 +76,23 @@ class ClienteRepository extends AbstractRepository
             return $this->jsonError($response, $exception);
         }
     }
+    public function historial(Request $request, Response $response, array $args): Response
+{
+    try {
+
+        $id = (int)$args['id'];
+
+        $controller = new ClienteController();
+
+        $cliente = $controller->getHistorialReservas($id);
+
+        return $this->json(
+            $response,
+            $cliente->toJson()
+        );
+
+    } catch (Exception $exception) {
+        return $this->jsonError($response, $exception);
+    }
+}
 }

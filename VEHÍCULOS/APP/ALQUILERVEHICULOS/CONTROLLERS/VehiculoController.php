@@ -91,6 +91,14 @@ class VehiculoController extends AbstractController
         $this->validarRequerido($data, 'anio', 'El año es obligatorio');
 
         $this->validarEnteroPositivo($data['anio'], 'El año del vehículo debe ser un número válido');
+        $anio = (int)$data['anio'];
+
+if ($anio < 1900 || $anio > (date('Y') + 1)) {
+    throw new Exception(
+        'El año del vehículo no es válido',
+        2
+    );
+}
 
         $estado = $data['estado'] ?? 'disponible';
         $this->validarEnListado(
@@ -99,4 +107,17 @@ class VehiculoController extends AbstractController
             'El estado del vehículo no es válido'
         );
     }
+
+    public function getHistorialReservas(int $id): Vehiculo
+{
+    $vehiculo = Vehiculo::with([
+        'reservas.cliente'
+    ])->find($id);
+
+    if (empty($vehiculo)) {
+        throw new Exception("El vehículo $id no existe", 1);
+    }
+
+    return $vehiculo;
+}
 }

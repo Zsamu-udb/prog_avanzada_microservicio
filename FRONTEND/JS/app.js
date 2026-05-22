@@ -1,33 +1,65 @@
-const mainContent = document.getElementById("mainContent");
-const heroEnterBtn = document.getElementById("heroEnterBtn");
-const heroVehiclesBtn = document.getElementById("heroVehiclesBtn");
-const scrollToPanelBtn = document.getElementById("scrollToPanelBtn");
+// js/app.js
+import { Modal } from "./components/Modal.js";
+import { Tabs } from "./components/Tabs.js";
+import { ClienteModule } from "./modules/clientes/ClienteModule.js";
+import { VehiculoModule } from "./modules/vehiculos/VehiculoModule.js";
+import { ReservaModule } from "./modules/reservas/ReservaModule.js";
+import { Dashboard } from "./components/Dashboard.js";
 
-const scrollToPanel = () => {
-  if (!mainContent) return;
+const modal = new Modal(document.getElementById("modal"));
 
-  mainContent.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-};
-
-heroEnterBtn?.addEventListener("click", () => {
-  scrollToPanel();
-  activateTab("tab-clientes");
+// Instanciar módulos
+const clienteModule = new ClienteModule({ modal });
+const vehiculoModule = new VehiculoModule({ modal });
+const reservaModule = new ReservaModule({
+  modal,
+  clienteModule,
+  vehiculoModule,
 });
 
-heroVehiclesBtn?.addEventListener("click", () => {
-  scrollToPanel();
-  activateTab("tab-vehiculos");
+// Dashboard (usa los arrays de los módulos)
+const dashboard = new Dashboard({
+  clienteModule,
+  vehiculoModule,
+  reservaModule,
 });
 
-scrollToPanelBtn?.addEventListener("click", () => {
-  scrollToPanel();
+// Tabs (pestañas Clientes / Vehículos / Reservas)
+const tabs = new Tabs(
+  document.querySelector(".segment-tabs"),
+  document.querySelectorAll(".module.tab-panel")
+);
+
+// Botones que abren una pestaña específica (ej. "Ver vehículos")
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-open-tab]");
+  if (!btn) return;
+  const tabName = btn.getAttribute("data-open-tab");
+  if (tabName) {
+    tabs.activate(tabName);
+  }
 });
 
-document.addEventListener("DOMContentLoaded", async () => {
-  activateTab("tab-clientes");
-  await consultarClientes();
-  await consultarVehiculos();
+// Avisar al módulo de reservas cuando cambian clientes/vehículos
+clienteModule.onChange = () => reservaModule.syncFromModules();
+vehiculoModule.onChange = () => reservaModule.syncFromModules();
+
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // Cargamos datos iniciales
+    await Promise.all([
+      clienteModule.loadClientes(),
+      vehiculoModule.loadVehiculos(),
+      reservaModule.loadReservas(),
+    ]);
+
+    // Llenar selects de reservas con listas cargadas
+    reservaModule.syncFromModules();
+
+    // Actualizar KPIs
+    await dashboard.update();
+  } catch (err) {
+    console.error(err);
+    modal.show("No se pudieron cargar los datos iniciales", "Error");
+  }
 });

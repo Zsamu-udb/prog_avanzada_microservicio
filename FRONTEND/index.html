@@ -1,591 +1,494 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AllCars</title>
+    <title>AllCars · Gestor de Alquiler de Vehículos</title>
 
-    <link
-      href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fuente Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="css/general.css" />
+    <!-- CSS separados -->
+    <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/components.css" />
-    <link rel="stylesheet" href="css/sections.css" />
-    <link rel="stylesheet" href="css/modal.css" />
   </head>
   <body>
-    <a class="skip-link" href="#mainContent">Saltar al contenido</a>
-
-    <header class="hero" id="top">
-      <nav class="topbar">
-        <div class="brand" aria-label="AllCars">
-          <div class="brand__mark">
-            <span class="brand__orb brand__orb--one"></span>
-            <span class="brand__orb brand__orb--two"></span>
-          </div>
-
-          <div class="brand__meta">
+    <!-- SHELL SUPERIOR / HERO -->
+    <header class="shell">
+      <div class="shell__topbar">
+        <div class="brand">
+          <div class="brand__logo">AC</div>
+          <div class="brand__text">
             <span class="brand__name">AllCars</span>
-            <span class="brand__sub">Premium Rental System</span>
+            <span class="brand__tagline">Premium rental system</span>
           </div>
         </div>
 
-        <div class="topbar__actions">
-          <button class="ghost-btn" type="button" id="scrollToPanelBtn">
-            Explorar panel
-          </button>
-        </div>
-      </nav>
+        <button class="btn-outline" type="button" data-scroll-target="#panel">
+          Explorar panel
+        </button>
+      </div>
 
-      <section class="hero__content">
-        <div class="hero__copy">
+      <section class="hero">
+        <div class="hero__content">
           <p class="eyebrow">Gestión premium de alquiler de vehículos</p>
-          <h1>Gestiona tu flota con una experiencia visual premium.</h1>
-          <p class="hero__text">
-            Clientes, vehículos y reservas en una sola plataforma moderna,
-            elegante y profesional.
+          <h1 class="hero__title">
+            Gestiona tu flota<br />
+            con una experiencia<br />
+            premium
+          </h1>
+          <p class="hero__subtitle">
+            Administra clientes, vehículos y reservas desde una interfaz moderna,
+            oscura y profesional pensada para microservicios.
           </p>
 
-          <div class="hero__buttons">
-            <button class="primary-btn" type="button" id="heroEnterBtn">
+          <div class="hero__actions">
+            <button
+              class="btn-primary"
+              type="button"
+              data-scroll-target="#panel"
+            >
               Entrar al sistema
             </button>
-            <button class="secondary-btn" type="button" id="heroVehiclesBtn">
-              Ver vehículos
-            </button>
-          </div>
-
-          <div class="hero__highlights">
-            <article class="highlight-card">
-              <span class="highlight-card__label">Operación</span>
-              <strong>Clientes, flota y reservas</strong>
-            </article>
-
-            <article class="highlight-card">
-              <span class="highlight-card__label">Experiencia</span>
-              <strong>Interfaz moderna y visual</strong>
-            </article>
-
-            <article class="highlight-card">
-              <span class="highlight-card__label">Enfoque</span>
-              <strong>Gestión clara y profesional</strong>
-            </article>
+            <button
+  class="btn-ghost"
+  type="button"
+  data-scroll-target="#panel"
+  data-open-tab="vehiculos"
+>
+  Ver vehículos
+</button>
           </div>
         </div>
 
-        <div class="hero__visual">
-          <div class="hero__visual-glow"></div>
-
-          <picture class="hero__picture">
+        <div class="hero__media">
+          <!-- Cambia la ruta de la imagen por tu propio carro si quieres -->
+          <div class="car-card">
+            <div class="car-card__glow"></div>
             <img
-              src="assets/images/hero-car.png"
-              alt="Vehículo destacado de AllCars en una escena de estudio"
-              width="1200"
-              height="800"
-              fetchpriority="high"
-              decoding="async"
+              src="assets/images/supercar.png"
+              alt="Vehículo deportivo premium"
+              class="car-card__image"
             />
-          </picture>
-
-          <div class="hero__floating-card hero__floating-card--one">
-            <span class="metric-inline">
-              <span class="metric-inline__dot"></span>
-              Flota premium
-            </span>
-          </div>
-
-          <div class="hero__floating-card hero__floating-card--two">
-            <span class="metric-inline">
-              <span class="metric-inline__dot"></span>
-              Reservas activas
-            </span>
           </div>
         </div>
       </section>
     </header>
 
-    <main id="mainContent" class="main-panel">
-      <section class="dashboard-shell">
-        <div class="dashboard-header">
-          <div class="dashboard-header__copy">
-            <p class="eyebrow">Panel operativo</p>
-            <h2>Administración central</h2>
-            <p>
-              Navega por cada módulo del sistema desde una experiencia visual
-              más clara, rápida y elegante.
-            </p>
-          </div>
+    <!-- PANEL OPERATIVO -->
+    <main class="panel" id="panel">
+      <section class="panel__header">
+        <p class="panel__eyebrow">Panel operativo</p>
+        <h2 class="panel__title">Administración central</h2>
+      </section>
 
-          <div class="dashboard-stats">
-            <article class="stat-card">
-              <span class="stat-card__label">Clientes</span>
-              <strong id="clientesCount">0</strong>
-            </article>
-            <article class="stat-card">
-              <span class="stat-card__label">Vehículos</span>
-              <strong id="vehiculosCount">0</strong>
-            </article>
-            <article class="stat-card">
-              <span class="stat-card__label">Reservas</span>
-              <strong id="reservasCount">0</strong>
-            </article>
-          </div>
-        </div>
+      <!-- KPIs -->
+      <section class="kpi-row">
+        <article class="kpi">
+          <header class="kpi__header">
+            <span class="kpi__label">Vehículos</span>
+          </header>
+          <p class="kpi__value" id="kpiVehiculos">0</p>
+        </article>
 
-        <section class="tabs-panel">
-          <div class="tabs-header">
-            <div>
-              <p class="eyebrow">Módulos</p>
-              <h3 class="tabs-header__title">Explora cada función</h3>
+        <article class="kpi">
+          <header class="kpi__header">
+            <span class="kpi__label">Clientes</span>
+          </header>
+          <p class="kpi__value" id="kpiClientes">0</p>
+        </article>
+
+        <article class="kpi">
+          <header class="kpi__header">
+            <span class="kpi__label">Reservas</span>
+          </header>
+          <p class="kpi__value" id="kpiReservasActivas">0</p>
+        </article>
+      </section>
+
+      <!-- TABS MÓDULOS -->
+      <nav class="segment-tabs" aria-label="Módulos">
+        <button
+          class="segment-tabs__item tab active"
+          data-tab="clientes"
+          type="button"
+        >
+          Clientes
+        </button>
+        <button class="segment-tabs__item tab" data-tab="vehiculos" type="button">
+          Vehículos
+        </button>
+        <button class="segment-tabs__item tab" data-tab="reservas" type="button">
+          Reservas
+        </button>
+      </nav>
+
+      <!-- MÓDULO CLIENTES -->
+      <section
+        class="module tab-panel active"
+        id="tab-clientes"
+        aria-label="Módulo de clientes"
+      >
+        <header class="module__header">
+          <p class="module__eyebrow">Módulo 01</p>
+          <h3 class="module__title">Clientes</h3>
+          <p class="module__subtitle">
+            Gestión completa de clientes registrados.
+          </p>
+        </header>
+
+        <div class="module__grid">
+          <!-- FORM CLIENTE -->
+          <section class="card card--form">
+            <h4 class="card__title">Nuevo cliente</h4>
+            <form id="clienteForm" autocomplete="off" class="stack">
+              <input type="hidden" name="id" />
+
+              <label class="field">
+                <span class="field__label">Nombre</span>
+                <input
+                  type="text"
+                  name="nombre"
+                  placeholder="Nombre completo"
+                />
+                <span class="field__error" data-error-for="nombre"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Teléfono</span>
+                <input
+                  type="tel"
+                  name="telefono"
+                  placeholder="Número de contacto"
+                />
+                <span class="field__error" data-error-for="telefono"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Correo</span>
+                <input
+                  type="email"
+                  name="correo"
+                  placeholder="correo@ejemplo.com"
+                />
+                <span class="field__error" data-error-for="correo"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Licencia</span>
+                <input
+                  type="text"
+                  name="numero_licencia"
+                  placeholder="Número de licencia"
+                />
+                <span
+                  class="field__error"
+                  data-error-for="numero_licencia"
+                ></span>
+              </label>
+
+              <div class="form-actions">
+                <button type="reset" class="btn-soft">Cancelar</button>
+                <button type="submit" class="btn-gradient">
+                  Guardar cliente
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- TABLA CLIENTES -->
+          <section class="card card--table">
+            <div class="card__header-row">
+              <h4 class="card__title">Clientes registrados</h4>
+              <button
+                type="button"
+                class="btn-soft"
+                id="btnRefrescarClientes"
+              >
+                Refrescar
+              </button>
             </div>
-          </div>
 
-          <div
-            class="tabs"
-            role="tablist"
-            aria-label="Módulos principales de AllCars"
-          >
-            <button
-              class="tab-btn active"
-              id="tab-clientes"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              aria-controls="panel-clientes"
-              tabindex="0"
-              data-tab="clientes"
-            >
-              <span class="tab-btn__label">Clientes</span>
-              <span class="tab-btn__sub">Gestión de usuarios</span>
-            </button>
+            <div class="table-wrap">
+              <table id="clientesTabla">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Licencia</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="5" class="table__empty">
+                      Sin clientes registrados
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
 
-            <button
-              class="tab-btn"
-              id="tab-vehiculos"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panel-vehiculos"
-              tabindex="-1"
-              data-tab="vehiculos"
-            >
-              <span class="tab-btn__label">Vehículos</span>
-              <span class="tab-btn__sub">Flota visual</span>
-            </button>
+      <!-- MÓDULO VEHÍCULOS -->
+      <section
+        class="module tab-panel"
+        id="tab-vehiculos"
+        aria-label="Módulo de vehículos"
+      >
+        <header class="module__header">
+          <p class="module__eyebrow">Módulo 02</p>
+          <h3 class="module__title">Vehículos</h3>
+          <p class="module__subtitle">
+            Alta y administración de la flota disponible para alquiler.
+          </p>
+        </header>
 
-            <button
-              class="tab-btn"
-              id="tab-reservas"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panel-reservas"
-              tabindex="-1"
-              data-tab="reservas"
-            >
-              <span class="tab-btn__label">Reservas</span>
-              <span class="tab-btn__sub">Control operativo</span>
-            </button>
-          </div>
+        <div class="module__grid">
+          <!-- FORM VEHÍCULO -->
+          <section class="card card--form">
+            <h4 class="card__title">Nuevo vehículo</h4>
+            <form id="vehiculoForm" autocomplete="off" class="stack">
+              <input type="hidden" name="id" />
 
-          <div class="tab-content">
-            <section
-              class="tab-view active"
-              id="panel-clientes"
-              role="tabpanel"
-              aria-labelledby="tab-clientes"
-            >
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Módulo 01</p>
-                  <h3>Clientes</h3>
-                  <p>
-                    Registra, edita y consulta los clientes activos dentro del
-                    sistema.
-                  </p>
-                </div>
+              <label class="field">
+                <span class="field__label">Marca</span>
+                <input type="text" name="marca" placeholder="Ej: Toyota" />
+                <span class="field__error" data-error-for="marca"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Modelo</span>
+                <input type="text" name="modelo" placeholder="Ej: Corolla" />
+                <span class="field__error" data-error-for="modelo"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Año</span>
+                <input type="number" name="anio" placeholder="Ej: 2024" />
+                <span class="field__error" data-error-for="anio"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Categoría</span>
+                <input
+                  type="text"
+                  name="categoria"
+                  placeholder="Sedán, SUV, etc."
+                />
+                <span class="field__error" data-error-for="categoria"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Estado</span>
+                <select name="estado">
+                  <option value="disponible">Disponible</option>
+                  <option value="alquilado">Alquilado</option>
+                  <option value="mantenimiento">Mantenimiento</option>
+                </select>
+                <span class="field__error" data-error-for="estado"></span>
+              </label>
+
+              <div class="form-actions">
+                <button type="reset" class="btn-soft">Cancelar</button>
+                <button type="submit" class="btn-gradient">
+                  Guardar vehículo
+                </button>
               </div>
+            </form>
+          </section>
 
-              <div class="module-grid module-grid--clients">
-                <article class="glass-card form-card">
-                  <div class="card-head">
-                    <p class="card-kicker">Formulario</p>
-                    <h4>Guardar cliente</h4>
-                  </div>
-
-                  <form id="clienteForm" name="clienteForm">
-                    <div class="form-grid">
-                      <div class="field">
-                        <label for="clienteNombre">Nombre</label>
-                        <input
-                          id="clienteNombre"
-                          name="nombre"
-                          type="text"
-                          placeholder="Ej. Carlos Ramírez"
-                        />
-                        <p id="msgClienteNombre" class="input-error">
-                          El nombre es obligatorio.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="clienteTelefono">Teléfono</label>
-                        <input
-                          id="clienteTelefono"
-                          name="telefono"
-                          type="text"
-                          placeholder="Ej. 3201234567"
-                        />
-                      </div>
-
-                      <div class="field">
-                        <label for="clienteCorreo">Correo</label>
-                        <input
-                          id="clienteCorreo"
-                          name="correo"
-                          type="email"
-                          placeholder="Ej. cliente@correo.com"
-                        />
-                        <p id="msgClienteCorreo" class="input-error">
-                          El correo no tiene un formato válido.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="clienteLicencia">Número de licencia</label>
-                        <input
-                          id="clienteLicencia"
-                          name="numero_licencia"
-                          type="text"
-                          placeholder="Ej. LIC123456"
-                        />
-                      </div>
-                    </div>
-
-                    <div class="form-actions">
-                      <button type="reset" class="secondary-btn">Cancelar</button>
-                      <button type="submit" class="primary-btn">
-                        Guardar cliente
-                      </button>
-                    </div>
-                  </form>
-                </article>
-
-                <article class="glass-card table-card">
-                  <div class="card-head">
-                    <p class="card-kicker">Listado</p>
-                    <h4>Clientes registrados</h4>
-                  </div>
-
-                  <div class="table-wrap">
-                    <table id="clientesTable">
-                      <thead>
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Teléfono</th>
-                          <th>Correo</th>
-                          <th>Licencia</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td colspan="5">No hay clientes registrados todavía.</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </article>
+          <!-- TABLA VEHÍCULOS -->
+          <section class="card card--table">
+            <div class="card__header-row">
+              <h4 class="card__title">Vehículos registrados</h4>
+              <div class="card__header-actions">
+                <button
+                  type="button"
+                  class="btn-soft"
+                  id="btnFiltrarDisponibles"
+                >
+                  Solo disponibles
+                </button>
+                <button
+                  type="button"
+                  class="btn-soft"
+                  id="btnRefrescarVehiculos"
+                >
+                  Refrescar
+                </button>
               </div>
-            </section>
+            </div>
 
-            <section
-              class="tab-view"
-              id="panel-vehiculos"
-              role="tabpanel"
-              aria-labelledby="tab-vehiculos"
-              hidden
-            >
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Módulo 02</p>
-                  <h3>Vehículos</h3>
-                  <p>
-                    Administra la flota con una presentación visual basada en
-                    tarjetas, estados y detalles clave.
-                  </p>
-                </div>
+            <div class="table-wrap">
+              <table id="vehiculosTabla">
+                <thead>
+                  <tr>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="table__empty">
+                      Sin vehículos registrados
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- MÓDULO RESERVAS -->
+      <section
+        class="module tab-panel"
+        id="tab-reservas"
+        aria-label="Módulo de reservas"
+      >
+        <header class="module__header">
+          <p class="module__eyebrow">Módulo 03</p>
+          <h3 class="module__title">Reservas</h3>
+          <p class="module__subtitle">
+            Control de periodos, estados y conflictos de reservas.
+          </p>
+        </header>
+
+        <div class="module__grid">
+          <!-- FORM RESERVA -->
+          <section class="card card--form">
+            <h4 class="card__title">Nueva reserva</h4>
+            <form id="reservaForm" autocomplete="off" class="stack">
+              <input type="hidden" name="id" />
+
+              <label class="field">
+                <span class="field__label">Cliente</span>
+                <select name="cliente_id"></select>
+                <span class="field__error" data-error-for="cliente_id"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Vehículo</span>
+                <select name="vehiculo_id"></select>
+                <span class="field__error" data-error-for="vehiculo_id"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Fecha inicio</span>
+                <input type="date" name="fecha_inicio" />
+                <span class="field__error" data-error-for="fecha_inicio"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Fecha fin</span>
+                <input type="date" name="fecha_fin" />
+                <span class="field__error" data-error-for="fecha_fin"></span>
+              </label>
+
+              <label class="field">
+                <span class="field__label">Estado</span>
+                <select name="estado">
+                  <option value="activa">Activa</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+                <span class="field__error" data-error-for="estado"></span>
+              </label>
+
+              <div class="form-actions">
+                <button type="reset" class="btn-soft">Cancelar</button>
+                <button type="submit" class="btn-gradient">
+                  Guardar reserva
+                </button>
               </div>
+            </form>
+          </section>
 
-              <div class="module-grid module-grid--vehicles">
-                <article class="glass-card form-card">
-                  <div class="card-head">
-                    <p class="card-kicker">Formulario</p>
-                    <h4>Guardar vehículo</h4>
-                  </div>
+          <!-- TABLA RESERVAS -->
+          <section class="card card--table">
+            <div class="card__header-row">
+              <h4 class="card__title">Reservas registradas</h4>
+              <button
+                type="button"
+                class="btn-soft"
+                id="btnRefrescarReservas"
+              >
+                Refrescar
+              </button>
+            </div>
 
-                  <form id="vehiculoForm" name="vehiculoForm">
-                    <div class="form-grid">
-                      <div class="field">
-                        <label for="vehiculoMarca">Marca</label>
-                        <input
-                          id="vehiculoMarca"
-                          name="marca"
-                          type="text"
-                          placeholder="Ej. Toyota"
-                        />
-                        <p id="msgVehiculoMarca" class="input-error">
-                          La marca es obligatoria.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="vehiculoModelo">Modelo</label>
-                        <input
-                          id="vehiculoModelo"
-                          name="modelo"
-                          type="text"
-                          placeholder="Ej. Corolla Cross"
-                        />
-                        <p id="msgVehiculoModelo" class="input-error">
-                          El modelo es obligatorio.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="vehiculoAnio">Año</label>
-                        <input
-                          id="vehiculoAnio"
-                          name="anio"
-                          type="number"
-                          placeholder="Ej. 2024"
-                        />
-                        <p id="msgVehiculoAnio" class="input-error">
-                          El año es obligatorio.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="vehiculoCategoria">Categoría</label>
-                        <input
-                          id="vehiculoCategoria"
-                          name="categoria"
-                          type="text"
-                          placeholder="Ej. SUV"
-                        />
-                        <p id="msgVehiculoCategoria" class="input-error">
-                          La categoría es obligatoria.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="vehiculoEstado">Estado</label>
-                        <select id="vehiculoEstado" name="estado">
-                          <option value="disponible">Disponible</option>
-                          <option value="alquilado">Alquilado</option>
-                          <option value="mantenimiento">Mantenimiento</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="form-actions">
-                      <button type="reset" class="secondary-btn">Cancelar</button>
-                      <button type="submit" class="primary-btn">
-                        Guardar vehículo
-                      </button>
-                    </div>
-                  </form>
-                </article>
-
-                <article class="glass-card visual-card">
-                  <div class="card-head">
-                    <p class="card-kicker">Flota visual</p>
-                    <h4>Vehículos registrados</h4>
-                  </div>
-
-                  <div id="vehiculosGrid" class="vehicle-grid">
-                    <article class="vehicle-card vehicle-card--placeholder">
-                      <img
-                        src="assets/images/placeholder-sedan.jpg"
-                        alt="Vehículo de muestra para AllCars"
-                        width="1200"
-                        height="800"
-                        loading="lazy"
-                      />
-                      <div class="vehicle-card__body">
-                        <span class="status-badge status-badge--available">
-                          Disponible
-                        </span>
-                        <h5 class="vehicle-card__title">Sin vehículos cargados</h5>
-                        <p>
-                          Aquí aparecerán las tarjetas visuales de la flota.
-                        </p>
-                      </div>
-                    </article>
-                  </div>
-                </article>
-              </div>
-            </section>
-
-            <section
-              class="tab-view"
-              id="panel-reservas"
-              role="tabpanel"
-              aria-labelledby="tab-reservas"
-              hidden
-            >
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Módulo 03</p>
-                  <h3>Reservas</h3>
-                  <p>
-                    Gestiona cada reserva con contexto visual del cliente y del
-                    vehículo seleccionado.
-                  </p>
-                </div>
-              </div>
-
-              <div class="module-grid module-grid--reservations">
-                <article class="glass-card form-card">
-                  <div class="card-head">
-                    <p class="card-kicker">Formulario</p>
-                    <h4>Guardar reserva</h4>
-                  </div>
-
-                  <form id="reservaForm" name="reservaForm">
-                    <div class="form-grid">
-                      <div class="field">
-                        <label for="reservaCliente">Cliente</label>
-                        <select id="reservaCliente" name="cliente_id">
-                          <option value="">Selecciona un cliente</option>
-                        </select>
-                        <p id="msgReservaCliente" class="input-error">
-                          Debes seleccionar un cliente.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="reservaVehiculo">Vehículo</label>
-                        <select id="reservaVehiculo" name="vehiculo_id">
-                          <option value="">Selecciona un vehículo</option>
-                        </select>
-                        <p id="msgReservaVehiculo" class="input-error">
-                          Debes seleccionar un vehículo.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="reservaFechaInicio">Fecha inicio</label>
-                        <input
-                          id="reservaFechaInicio"
-                          name="fecha_inicio"
-                          type="date"
-                        />
-                        <p id="msgReservaFechaInicio" class="input-error">
-                          La fecha de inicio es obligatoria.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="reservaFechaFin">Fecha fin</label>
-                        <input
-                          id="reservaFechaFin"
-                          name="fecha_fin"
-                          type="date"
-                        />
-                        <p id="msgReservaFechaFin" class="input-error">
-                          La fecha final es obligatoria.
-                        </p>
-                      </div>
-
-                      <div class="field">
-                        <label for="reservaEstado">Estado</label>
-                        <select id="reservaEstado" name="estado">
-                          <option value="activa">Activa</option>
-                          <option value="completada">Completada</option>
-                          <option value="cancelada">Cancelada</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="form-actions">
-                      <button type="reset" class="secondary-btn">Cancelar</button>
-                      <button type="submit" class="primary-btn">
-                        Guardar reserva
-                      </button>
-                    </div>
-                  </form>
-                </article>
-
-                <article class="glass-card reservations-card">
-                  <div class="card-head">
-                    <p class="card-kicker">Timeline visual</p>
-                    <h4>Reservas registradas</h4>
-                  </div>
-
-                  <div id="reservasList" class="reservation-list">
-                    <article class="reservation-item reservation-item--placeholder">
-                      <img
-                        src="assets/images/placeholder-suv.jpg"
-                        alt="Vehículo de muestra para reserva"
-                        width="1200"
-                        height="800"
-                        loading="lazy"
-                      />
-                      <div class="reservation-item__body">
-                        <span class="status-badge status-badge--pending">
-                          Sin reservas
-                        </span>
-                        <h5 class="reservation-item__title">
-                          Aún no hay reservas registradas
-                        </h5>
-                        <p>
-                          En este espacio aparecerá el detalle visual de cada
-                          reserva con su cliente y vehículo asociado.
-                        </p>
-                      </div>
-                    </article>
-                  </div>
-                </article>
-              </div>
-            </section>
-          </div>
-        </section>
+            <div class="table-wrap">
+              <table id="reservasTabla">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="table__empty">
+                      Sin reservas registradas
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </section>
     </main>
 
-    <div id="modal1" class="modal close" aria-hidden="true">
-      <div class="modal__backdrop"></div>
-      <div
-        class="modal__box"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mensaje del sistema"
-      >
-        <p class="modal__text">Mensaje del sistema</p>
-        <button class="modal__btn" type="button">Aceptar</button>
+    <!-- MODAL GENERAL -->
+    <div
+      id="modal"
+      class="modal hidden"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div class="modal__content">
+        <h2 id="modal-title" class="modal__title"></h2>
+        <p class="modal__message"></p>
+        <div class="modal__actions">
+          <button type="button" class="btn-gradient" id="modalOkBtn">
+            Aceptar
+          </button>
+        </div>
       </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/modal.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/tabs.js"></script>
-    <script src="js/clientes.js"></script>
-    <script src="js/cliente_form.js"></script>
-    <script src="js/vehiculos.js"></script>
-    <script src="js/vehiculo_form.js"></script>
-    <script src="js/reservas.js"></script>
-    <script src="js/reserva_form.js"></script>
-    <script src="js/app.js"></script>
+    <!-- JS principal (módulos) -->
+    <script type="module" src="js/app.js"></script>
+
+    <!-- Scroll suave para botones con data-scroll-target -->
+    <script>
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-scroll-target]");
+        if (!btn) return;
+        const selector = btn.getAttribute("data-scroll-target");
+        const target = document.querySelector(selector);
+        if (target)
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    </script>
   </body>
 </html>

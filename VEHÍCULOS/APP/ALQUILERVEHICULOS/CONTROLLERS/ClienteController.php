@@ -65,5 +65,31 @@ class ClienteController extends AbstractController
 
         $correo = $this->limpiarTexto($data['correo'] ?? null);
         $this->validarEmailOpcional($correo);
+        $licencia = $this->limpiarTexto(
+    $data['numero_licencia'] ?? null
+);
+
+if (
+    $licencia !== null &&
+    strlen($licencia) < 5
+) {
+    throw new Exception(
+        'La licencia no es válida',
+        2
+    );
+}
     }
+
+    public function getHistorialReservas(int $id): Cliente
+{
+    $cliente = Cliente::with([
+        'reservas.vehiculo'
+    ])->find($id);
+
+    if (empty($cliente)) {
+        throw new Exception("El cliente $id no existe", 1);
+    }
+
+    return $cliente;
+}
 }

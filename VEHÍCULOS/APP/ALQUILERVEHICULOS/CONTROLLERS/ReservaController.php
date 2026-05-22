@@ -45,6 +45,53 @@ class ReservaController extends AbstractController
             throw new Exception("El vehículo {$data['vehiculo_id']} no está disponible", 3);
         }
 
+        $conflicto = Reserva::where(
+    'vehiculo_id',
+    $data['vehiculo_id']
+)
+->where('estado', 'activa')
+->where(function ($query) use ($data) {
+
+    $query
+        ->whereBetween(
+            'fecha_inicio',
+            [
+                $data['fecha_inicio'],
+                $data['fecha_fin']
+            ]
+        )
+        ->orWhereBetween(
+            'fecha_fin',
+            [
+                $data['fecha_inicio'],
+                $data['fecha_fin']
+            ]
+        )
+        ->orWhere(function ($q) use ($data) {
+
+            $q->where(
+                'fecha_inicio',
+                '<=',
+                $data['fecha_inicio']
+            )
+            ->where(
+                'fecha_fin',
+                '>=',
+                $data['fecha_fin']
+            );
+
+        });
+
+})
+->exists();
+
+if ($conflicto) {
+    throw new Exception(
+        'Ya existe una reserva activa para ese período',
+        3
+    );
+}
+
         $reserva = new Reserva();
         $reserva->cliente_id = (int) $data['cliente_id'];
         $reserva->vehiculo_id = (int) $data['vehiculo_id'];
@@ -170,6 +217,12 @@ class ReservaController extends AbstractController
         $this->validarFecha($data['fecha_inicio'], 'La fecha de inicio no es válida');
         $this->validarFecha($data['fecha_fin'], 'La fecha final no es válida');
         $this->validarRangoFechas($data['fecha_inicio'], $data['fecha_fin']);
+        if ($data['fecha_inicio'] < date('Y-m-d')) {
+    throw new Exception(
+        'No se permiten reservas en fechas pasadas',
+        2
+    );
+}
 
         $estado = $data['estado'] ?? 'activa';
         $this->validarEnListado(
